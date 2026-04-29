@@ -5,24 +5,25 @@
 
 #pragma once
 
+#define TYPE    reinterpret_cast
+
 typedef struct
 {
     char id;
-    int bRead;
+    char bRead;
 } bReader;
 
-#define TYPE_ARRAY      0x7201
-#define TYPE_STRING     0x7200
+// #define TYPE_ARRAY      0x7201
+// #define TYPE_STRING     0x7200
 
 // чисто чтоб не запутатся написал
 // забейте
 const bReader bReaderFormat[] = {
-    {'i', 4},
-    {'c', 1},
-    {'s', 2},
-    {'l', 8},
-    {'d', 1},
-    {'t', TYPE_STRING} // массив
+    {'i', 4}, // int
+    {'c', 1}, // char
+    {'s', 2}, // short
+    {'l', 8}, // long
+    {'d', 1}, // double
 };
 
 typedef struct
@@ -60,11 +61,16 @@ public:
     OsrFile(std::string fName);
     int ReadSign(); // читает до replayData
 
-    std::vector<char> fileData;
-    
     OsrSign sign;
+
 private:
+    std::vector<char> OsrFile::GetVal(char type);
+    std::vector<char>GetString();
+    void ReadStruct();
+
     size_t fSize;
+    int offset = 0;
+    std::vector<char> fileData;
 };
 
-std::vector<int> AmountRead(const char* instruction, std::vector<char> data);
+// std::vector<int> AmountRead(const char* instruction, std::vector<char> data);

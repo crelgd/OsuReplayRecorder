@@ -18,7 +18,7 @@ OsrFile::OsrFile(std::string fName)
     file.seekg(0, std::ios::beg);
 
     std::vector<char> tv(fSize);
-    file.read(reinterpret_cast<char*>(tv.data()), fSize);
+    file.read(TYPE<char*>(tv.data()), fSize);
 
     fileData = tv;
 }
@@ -27,61 +27,82 @@ int OsrFile::ReadSign()
 {
     if (fileData.size() < fSize)
     {
-        return NULL;
+        return 1;
     }
 
-    const char* rInstruct = "citttssssssiscicli"; // все до char* replayData;
-    int rInstructSize = strlen(rInstruct);
-    // строки чисто как указатели будут
-    std::vector<int> toRead = AmountRead(rInstruct, fileData);
-
-    int offset = 0;
-
-    std::cout << rInstructSize << std::endl;
-
-    for (int i = 0; i < rInstructSize; i++)
-    {
-        if (offset >= rInstructSize) return 1;
-
-        if (toRead[i] == TYPE_STRING)
-        {
-            toRead[i] = (char)*(fileData.data()+offset+1);
-            offset += 2;
-
-            std::cout << toRead[i] << std::endl;
-
-            for (int o = 0; o < toRead[i]; o++)
-            {
-                std::cout << fileData[offset+o];
-            }
-
-            std::cout << std::endl;
-        }
-
-        memcpy(&sign+offset, &fileData[offset], toRead[i]);
-        offset += toRead[i];
-    }
+    ReadStruct();
 
     return 0;
 }
 
-std::vector<int> AmountRead(const char* instruction, std::vector<char> data)
+// этат пиздец лучше не трогать ваще
+//  хазе но вроде может память сламать
+// бля нужна ваще не массив передавать а бля в int хуярить данные через memcpy
+// кароч переделать кадата
+char* OsrFile::GetVal(char type)
 {
-    if (sizeof(bReaderFormat) < 2) return {};
+    char bReaderSize = sizeof(bReaderFormat) / sizeof(bReaderFormat[0]);
 
-    std::vector<int> list;
-    char ReaderStructSize = sizeof(bReaderFormat) / sizeof(bReaderFormat[0]);
-
-    for (int i = 0; i < strlen(instruction); i++)
+    for (int i = 0; i < bReaderSize; i++)
     {
-        for (int j = 0; j < ReaderStructSize; j++)
+        char curRead = bReaderFormat[i].bRead;
+
+        if (type == bReaderFormat[i].id)
         {
-            if (instruction[i] == bReaderFormat[j].id)
-            {
-                list.push_back(bReaderFormat[j].bRead);
-            }
+            std::vector<char> arr(curRead);
+            memcpy(
+                TYPE<char*>(arr.data()),
+                fileData.data() + offset,
+                curRead
+            );
+            offset += curRead;
+            
+            return arr.data();
         }
     }
 
-    return list;
+    return NULL;
+}
+
+std::vector<char> OsrFile::GetString()
+{
+    char ReadSize;
+    offset++; ReadSize = TYPE<char>(GetVal('c'));
+
+    std::vector<char> str(ReadSize+1);
+    
+    if (memcpy(
+        TYPE<char*>(str.data()), 
+        TYPE<char*>(fileData.data() + offset),
+        ReadSize
+    ) != str.data()) 
+    {
+        return {};
+    }
+
+    str[ReadSize] = '\0'; // \0 terminated
+
+    return str;
+}
+
+void OsrFile::ReadStruct()
+{
+    sign.mode = TYPE<char>(GetVal('c'));
+    sign.ver = TYPE<int>(GetVal('i'));
+    sign.m5card = TYPE<char*>(GetString().data());
+    sign.player = TYPE<char*>(GetString().data());
+    sign.m5replay = TYPE<char*>(GetString().data());
+    sign.r300 = TYPE<short>(GetVal('s'));
+    sign.r100 = TYPE<short>(GetVal('s'));
+    sign.r50 = TYPE<short>(GetVal('s'));
+    sign.iCombos = TYPE<short>(GetVal('s'));
+    sign.niCombos = TYPE<short>(GetVal('s'));
+    sign.misses = TYPE<short>(GetVal('s'));
+    sign.points = TYPE<int>(GetVal('i'));
+    sign.maxCombo = TYPE<short>(GetVal('s'));
+    sign.iiCombos = TYPE<char>(GetVal('c'));
+    sign.modes = TYPE<int>(GetVal('i'));
+    sign.hp = TYPE<char*>(GetString().data());
+    sign.time = TYPE<long>(GetVal('l'));
+    sign.compData = TYPE<int>(GetVal('i'));
 }
