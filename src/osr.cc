@@ -121,9 +121,23 @@ void OsrFile::ReadStruct()
     }
 }   
 
-int uleb128_decode(char byte)
+int uleb128_decode(std::vector<unsigned char>& bytes)
 {
+    int out = 0;
+    int shift = 0;
+    int byteSize = bytes.size();
 
+    for (int i = 0; i < byteSize-1; i++)
+    {
+        char byteDecompile = bytes[i] & 0x7f;
+        out |= byteDecompile << shift;
+
+        shift += 7; 
+    }
+
+    out |= bytes[byteSize-1] << shift;
+
+    return out;
 }
 std::vector<char> uleb128_encode(int val)
 {
@@ -132,11 +146,18 @@ std::vector<char> uleb128_encode(int val)
 
     while (val != 0)
     {
-        val >>= shift;
         int byte = val & 0x7f;
+        val >>= 7;
 
-        byte |= 0x80;
+        if (val != 0)
+        {
+            byte |= 0x80;
+            std::cout << "wew " << byte << std::endl;
+        }
 
-        arr.push_back(byte);
+        arr.push_back(char(byte));
     }
+
+    return arr;
 }
+

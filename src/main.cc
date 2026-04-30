@@ -1,31 +1,28 @@
 #include <iostream>
+#include <bitset>   
 //#include "osr.h"
 
-std::vector<char> uleb128_encode(int val)
+int uleb128_decode(std::vector<unsigned char>& bytes)
 {
+    int out = 0;
     int shift = 0;
-    std::vector<char> arr;
+    int byteSize = bytes.size();
 
-    while (val != 0)
+    for (int i = 0; i < byteSize-1; i++)
     {
-        int byte = val & 0x7f;
-        val >>= 7;
+        char byteDecompile = bytes[i] & 0x7f;
+        out |= byteDecompile << shift;
 
-        if (val != 0)
-        {
-            byte |= 0x80;
-            std::cout << "wew " << byte << std::endl;
-        }
-
-        arr.push_back(char(byte));
+        shift += 7; 
     }
 
-    return arr;
+    out |= bytes[byteSize-1] << shift;
+
+    return out;
 }
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2) return 0;
 
     /*
     OsrFile file(argv[1]);
@@ -57,14 +54,11 @@ int main(int argc, char* argv[])
     } 
     */
 
-    std::vector<char> uleb128test = uleb128_encode(atoi(argv[1]));
+    std::vector<unsigned char> uleb128test = {0xE5, 0x8E, 0x26};
 
-    for (int i = 0; i < uleb128test.size(); i++)
-    {
-        std::cout << "0x" << std::hex << int(uleb128test[i]) << " ";
-    }
+    int decode = uleb128_decode(uleb128test);
 
-    std::cout << std::endl;
+    std::cout << decode << std::endl;
 
     return 0;
 }

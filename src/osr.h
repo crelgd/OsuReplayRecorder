@@ -89,7 +89,7 @@ public:
     int err;
 };
 
-int uleb128_decode(char byte);
+int uleb128_decode(std::vector<unsigned char>& bytes);
 std::vector<char> uleb128_encode(int val);
 
 // std::vector<int> AmountRead(const char* instruction, std::vector<char> data);
