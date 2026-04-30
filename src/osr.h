@@ -64,7 +64,7 @@ public:
     OsrSign sign;
 
 private:
-    std::vector<char> OsrFile::GetVal(char type);
+    void GetVal(void* dst, char type);
     std::vector<char>GetString();
     void ReadStruct();
 
@@ -72,5 +72,24 @@ private:
     int offset = 0;
     std::vector<char> fileData;
 };
+
+class OSRException
+{
+public:
+    OSRException(int errd)
+    {
+        err = errd;
+    }
+    
+    virtual int what() throw()
+    {
+        return err;
+    }
+
+    int err;
+};
+
+int uleb128_decode(char byte);
+std::vector<char> uleb128_encode(int val);
 
 // std::vector<int> AmountRead(const char* instruction, std::vector<char> data);

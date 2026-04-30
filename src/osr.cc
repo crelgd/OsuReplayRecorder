@@ -5,6 +5,8 @@
 
 #include "osr.h"
 
+#include <windows.h>
+
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -39,7 +41,7 @@ int OsrFile::ReadSign()
 //  хазе но вроде может память сламать
 // бля нужна ваще не массив передавать а бля в int хуярить данные через memcpy
 // кароч переделать кадата
-char* OsrFile::GetVal(char type)
+void OsrFile::GetVal(void* dst, char type)
 {
     char bReaderSize = sizeof(bReaderFormat) / sizeof(bReaderFormat[0]);
 
@@ -49,36 +51,34 @@ char* OsrFile::GetVal(char type)
 
         if (type == bReaderFormat[i].id)
         {
-            std::vector<char> arr(curRead);
             memcpy(
-                TYPE<char*>(arr.data()),
+                TYPE<char*>(dst),
                 fileData.data() + offset,
                 curRead
             );
+            std::cout << "offset: " << offset << std::endl;
             offset += curRead;
-            
-            return arr.data();
         }
     }
-
-    return NULL;
 }
 
 std::vector<char> OsrFile::GetString()
 {
     char ReadSize;
-    offset++; ReadSize = TYPE<char>(GetVal('c'));
+    offset++;
+    GetVal(&ReadSize, 'c');
+    offset += ReadSize;
+    std::cout << "str end offset: " << offset << std::endl;
+
+    std::cout << "CUR " << std::hex << int(ReadSize) << std::endl;
 
     std::vector<char> str(ReadSize+1);
     
-    if (memcpy(
+    memcpy(
         TYPE<char*>(str.data()), 
         TYPE<char*>(fileData.data() + offset),
         ReadSize
-    ) != str.data()) 
-    {
-        return {};
-    }
+    );
 
     str[ReadSize] = '\0'; // \0 terminated
 
@@ -87,22 +87,56 @@ std::vector<char> OsrFile::GetString()
 
 void OsrFile::ReadStruct()
 {
-    sign.mode = TYPE<char>(GetVal('c'));
-    sign.ver = TYPE<int>(GetVal('i'));
-    sign.m5card = TYPE<char*>(GetString().data());
-    sign.player = TYPE<char*>(GetString().data());
-    sign.m5replay = TYPE<char*>(GetString().data());
-    sign.r300 = TYPE<short>(GetVal('s'));
-    sign.r100 = TYPE<short>(GetVal('s'));
-    sign.r50 = TYPE<short>(GetVal('s'));
-    sign.iCombos = TYPE<short>(GetVal('s'));
-    sign.niCombos = TYPE<short>(GetVal('s'));
-    sign.misses = TYPE<short>(GetVal('s'));
-    sign.points = TYPE<int>(GetVal('i'));
-    sign.maxCombo = TYPE<short>(GetVal('s'));
-    sign.iiCombos = TYPE<char>(GetVal('c'));
-    sign.modes = TYPE<int>(GetVal('i'));
-    sign.hp = TYPE<char*>(GetString().data());
-    sign.time = TYPE<long>(GetVal('l'));
-    sign.compData = TYPE<int>(GetVal('i'));
+    try {
+        GetVal(&sign.mode,      'c');
+        GetVal(&sign.ver,       'i');
+        std::cout << "version: " << sign.ver << std::endl;
+        std::cout << "6062 | " << GetString().data() << std::endl;
+        std::cout << "6062 | " << GetString().data() << std::endl;
+        GetVal(&sign.r300,      's');
+        GetVal(&sign.r100,      's');
+        GetVal(&sign.r50,       's');
+        GetVal(&sign.iCombos,   's');
+        GetVal(&sign.niCombos,  's');
+        GetVal(&sign.misses,    's');
+        GetVal(&sign.points,    'i');
+        GetVal(&sign.maxCombo,  's');
+        GetVal(&sign.iiCombos,  'c');
+        GetVal(&sign.modes,     'i');
+        sign.hp = GetString().data();
+        GetVal(&sign.time,      'l');
+        GetVal(&sign.compData,  'i');
+    } 
+    catch(int& err) 
+    {
+        std::cout << err << std::endl;
+
+        if (AttachConsole(ATTACH_PARENT_PROCESS))
+        {
+            FILE* stream;
+            freopen_s(&stream, "CONOUT$", "w", stdout);
+        }
+
+        exit(err);
+    }
+}   
+
+int uleb128_decode(char byte)
+{
+
+}
+std::vector<char> uleb128_encode(int val)
+{
+    int shift = 0;
+    std::vector<char> arr;
+
+    while (val != 0)
+    {
+        val >>= shift;
+        int byte = val & 0x7f;
+
+        byte |= 0x80;
+
+        arr.push_back(byte);
+    }
 }
