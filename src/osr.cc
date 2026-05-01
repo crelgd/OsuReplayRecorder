@@ -36,64 +36,30 @@ int OsrFile::ReadSign()
     return 0;
 }
 
-// этат пиздец лучше не трогать ваще
-//  хазе но вроде может память сламать
-// бля нужна ваще не массив передавать а бля в int хуярить данные через memcpy
-// кароч переделать кадата
-void OsrFile::GetVal(void* dst, char type)
+std::string OsrFile::GetString(int lebSize)
 {
-    char bReaderSize = sizeof(bReaderFormat) / sizeof(bReaderFormat[0]);
-
-    for (int i = 0; i < bReaderSize; i++)
-    {
-        char curRead = bReaderFormat[i].bRead;
-
-        if (type == bReaderFormat[i].id)
-        {
-            memcpy(
-                TYPE<char*>(dst),
-                fileData.data() + offset,
-                curRead
-            );
-            offset += curRead;
-        }
-    }
-}
-
-std::vector<char> OsrFile::GetString(int lebSize)
-{
-    unsigned char byte;
-    GetVal(&byte, 'c');
-
-    std::vector<char> str;
+    unsigned char byte = GetVal<unsigned char>();
+    std::string str;
     
     switch (byte)
     {
     case 0x00:
-    {
-        return {};
-    }
-    break;
+        {
+            return {};
+        }
+        break;
 
     case 0x0B:
-    {
-        std::vector<unsigned char> uleb128_arr;
-
-        for (int i = 0; i < lebSize; i++)
         {
-            GetVal(&byte, 'c');
-            uleb128_arr.push_back(byte);
-        }
-
-        int strSize = uleb128_decode(uleb128_arr);
-        str.resize(strSize+1);
+            int strSize = uleb128_decode();
+            str.resize(strSize+1);
         
-        memcpy(str.data(), fileData.data() + offset, strSize);
-        offset += strSize;
+            memcpy(&str[0], fileData.data() + offset, strSize);
+            offset += strSize;
 
-        str[strSize] = '\0';
-    }
-    break;
+            str[strSize] = '\0';
+        }
+        break;
     }
 
     return str;
@@ -101,59 +67,44 @@ std::vector<char> OsrFile::GetString(int lebSize)
 
 void OsrFile::ReadStruct()
 {
-    try {
-        GetVal(&sign.mode,      'c');
-        GetVal(&sign.ver,       'i');
-        sign.md5card = GetString(1).data();
-        sign.player = GetString(1).data();
-        sign.md5replay = GetString(1).data();
-        GetVal(&sign.r300,      's');
-        GetVal(&sign.r100,      's');
-        GetVal(&sign.r50,       's');
-        GetVal(&sign.iCombos,   's');
-        GetVal(&sign.niCombos,  's');
-        GetVal(&sign.misses,    's');
-        GetVal(&sign.points,    'i');
-        GetVal(&sign.maxCombo,  's');
-        GetVal(&sign.iiCombos,  'c');
-        GetVal(&sign.modes,     'i');
-        sign.hp = GetString(1).data();
-        GetVal(&sign.time,      'l');
-        GetVal(&sign.compData,  'i');
-    } 
-    catch(int& err) 
-    {
-        std::cout << "ERROR CODE: " << err << std::endl;
-
-        if (AttachConsole(ATTACH_PARENT_PROCESS))
-        {
-            FILE* stream;
-            freopen_s(&stream, "CONOUT$", "w", stdout);
-        }
-
-        exit(err);
-    }
+    sign.mode       = GetVal<unsigned char>();
+    sign.ver        = GetVal<int>();
+    sign.md5card    = GetString(1).data();
+    sign.player     = GetString(1).data();
+    sign.md5replay  = GetString(1).data();
+    sign.r300       = GetVal<short>();
+    sign.r100       = GetVal<short>();
+    sign.r50        = GetVal<short>();
+    sign.iCombos    = GetVal<short>();
+    sign.niCombos   = GetVal<short>();
+    sign.misses     = GetVal<short>();
+    sign.points     = GetVal<int>();
+    sign.maxCombo   = GetVal<short>();
+    sign.iiCombos   = GetVal<unsigned char>();
+    sign.modes      = GetVal<int>();
+    sign.hp         = GetString(1).data();
+    sign.time       = GetVal<int64_t>();
+    sign.compData   = GetVal<int>();
 }   
 
-int uleb128_decode(std::vector<unsigned char>& bytes)
+int OsrFile::uleb128_decode()
 {
     int out = 0;
     int shift = 0;
-    int byteSize = bytes.size();
+    char byte;
 
-    for (int i = 0; i < byteSize-1; i++)
+    do
     {
-        char byteDecompile = bytes[i] & 0x7f;
+        byte =  GetVal<unsigned char>();
+        unsigned char byteDecompile = byte & 0x7f;
         out |= byteDecompile << shift;
 
         shift += 7; 
-    }
-
-    out |= bytes[byteSize-1] << shift;
+    } while((byte & 0x80) != 0);
 
     return out;
 }
-std::vector<char> uleb128_encode(int val)
+std::vector<char> OsrFile::uleb128_encode(int val)
 {
     int shift = 0;
     std::vector<char> arr;

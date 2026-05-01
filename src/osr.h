@@ -7,24 +7,8 @@
 
 #define TYPE    reinterpret_cast
 
-typedef struct
-{
-    char id;
-    char bRead;
-} bReader;
-
 // #define TYPE_ARRAY      0x7201
 // #define TYPE_STRING     0x7200
-
-// чисто чтоб не запутатся написал
-// забейте
-const bReader bReaderFormat[] = {
-    {'i', 4}, // int
-    {'c', 1}, // char
-    {'s', 2}, // short
-    {'l', 8}, // long
-    {'d', 1}, // double
-};
 
 typedef struct
 {
@@ -48,10 +32,10 @@ typedef struct
                     // а v — значение с плавающей запятой от 0 до 1, 
                     // равное количеству здоровья в данный момент времени 
                     // (0 = полоска здоровья пуста, 1 = полоска здоровья заполнена)    
-    long time;      // Отметка времени
+    int64_t time;      // Отметка времени
     int compData;   // 	Длина сжатых данных реплея (в байтах)
     char* replayData; // Сжатые данные реплея
-    long resId;     // 	Онлайн-идентификатор результата
+    int64_t resId;     // 	Онлайн-идентификатор результата
     double modInfo; // Дополнительная информация о модах. Присутствует только при включенном моде Target Practice
 } OsrSign;
 
@@ -61,9 +45,22 @@ public:
     OsrFile(std::string fName);
     int ReadSign(); // читает до replayData
 private:
-    void GetVal(void* dst, char type);
-    std::vector<char>GetString(int lebSize);
+
+    template <typename T>
+    T GetVal()
+    {
+        T val;
+        memcpy(&val, fileData.data() + offset, sizeof(T));
+        offset += sizeof(T);
+
+        return val;
+    }
+
+    std::string GetString(int lebSize);
     void ReadStruct();
+
+    int uleb128_decode();
+    std::vector<char> uleb128_encode(int val);
 
 public:
     OsrSign sign;
@@ -89,8 +86,5 @@ public:
 public:
     int err;
 };
-
-int uleb128_decode(std::vector<unsigned char>& bytes);
-std::vector<char> uleb128_encode(int val);
 
 // std::vector<int> AmountRead(const char* instruction, std::vector<char> data);

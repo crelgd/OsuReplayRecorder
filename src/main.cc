@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
             << "IICOMBOS: " << int(file.sign.iiCombos) << "\n"
             << "MODE: " << file.sign.modes << "\n"
             << "HP: " << file.sign.hp << "\n"
-            << "TIME: " << file.sign.time << "\n"
+            << "TIME: " << int64_t(file.sign.time) << "\n"
             << "COMP DATA SIZE: " << file.sign.compData
             << std::endl;
     } 
