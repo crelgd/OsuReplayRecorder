@@ -6,7 +6,6 @@
 #include "osr.h"
 
 #include <windows.h>
-
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -56,31 +55,46 @@ void OsrFile::GetVal(void* dst, char type)
                 fileData.data() + offset,
                 curRead
             );
-            std::cout << "offset: " << offset << std::endl;
             offset += curRead;
         }
     }
 }
 
-std::vector<char> OsrFile::GetString()
+std::vector<char> OsrFile::GetString(int lebSize)
 {
-    char ReadSize;
-    offset++;
-    GetVal(&ReadSize, 'c');
-    offset += ReadSize;
-    std::cout << "str end offset: " << offset << std::endl;
+    unsigned char byte;
+    GetVal(&byte, 'c');
 
-    std::cout << "CUR " << std::hex << int(ReadSize) << std::endl;
-
-    std::vector<char> str(ReadSize+1);
+    std::vector<char> str;
     
-    memcpy(
-        TYPE<char*>(str.data()), 
-        TYPE<char*>(fileData.data() + offset),
-        ReadSize
-    );
+    switch (byte)
+    {
+    case 0x00:
+    {
+        return {};
+    }
+    break;
 
-    str[ReadSize] = '\0'; // \0 terminated
+    case 0x0B:
+    {
+        std::vector<unsigned char> uleb128_arr;
+
+        for (int i = 0; i < lebSize; i++)
+        {
+            GetVal(&byte, 'c');
+            uleb128_arr.push_back(byte);
+        }
+
+        int strSize = uleb128_decode(uleb128_arr);
+        str.resize(strSize+1);
+        
+        memcpy(str.data(), fileData.data() + offset, strSize);
+        offset += strSize;
+
+        str[strSize] = '\0';
+    }
+    break;
+    }
 
     return str;
 }
@@ -90,9 +104,9 @@ void OsrFile::ReadStruct()
     try {
         GetVal(&sign.mode,      'c');
         GetVal(&sign.ver,       'i');
-        std::cout << "version: " << sign.ver << std::endl;
-        std::cout << "6062 | " << GetString().data() << std::endl;
-        std::cout << "6062 | " << GetString().data() << std::endl;
+        sign.md5card = GetString(1).data();
+        sign.player = GetString(1).data();
+        sign.md5replay = GetString(1).data();
         GetVal(&sign.r300,      's');
         GetVal(&sign.r100,      's');
         GetVal(&sign.r50,       's');
@@ -103,13 +117,13 @@ void OsrFile::ReadStruct()
         GetVal(&sign.maxCombo,  's');
         GetVal(&sign.iiCombos,  'c');
         GetVal(&sign.modes,     'i');
-        sign.hp = GetString().data();
+        sign.hp = GetString(1).data();
         GetVal(&sign.time,      'l');
         GetVal(&sign.compData,  'i');
     } 
     catch(int& err) 
     {
-        std::cout << err << std::endl;
+        std::cout << "ERROR CODE: " << err << std::endl;
 
         if (AttachConsole(ATTACH_PARENT_PROCESS))
         {
@@ -152,7 +166,6 @@ std::vector<char> uleb128_encode(int val)
         if (val != 0)
         {
             byte |= 0x80;
-            std::cout << "wew " << byte << std::endl;
         }
 
         arr.push_back(char(byte));

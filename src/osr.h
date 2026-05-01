@@ -30,9 +30,9 @@ typedef struct
 {
     char mode;      // (0 = osu!, 1 = osu!taiko, 2 = osu!catch, 3 = osu!mania)
     int ver;
-    char* md5card;
-    char* player;
-    char* md5replay;
+    std::string md5card;
+    std::string player;
+    std::string md5replay;
     short r300;     // Число попаданий в "300"
     short r100;     // Число попаданий в "100" в osu!, "150" в osu!taiko, "100" в osu!catch, "100" в osu!mania
     short r50;      // Число попаданий в "50" в osu!, "50" в osu!mania, или маленьких фруктов в osu!catch
@@ -43,7 +43,7 @@ typedef struct
     short maxCombo; // Самое большое набранное комбо
     char iiCombos;  // Идеальное комбо (1 = без промахов, слайдербрейков и пропущенных концов слайдеров)
     int modes;      // Используемые моды
-    char* hp;       // Уровень здоровья: разделенные запятыми пары u/v, 
+    std::string hp;       // Уровень здоровья: разделенные запятыми пары u/v, 
                     // где u — это время в миллисекундах в песне, 
                     // а v — значение с плавающей запятой от 0 до 1, 
                     // равное количеству здоровья в данный момент времени 
@@ -60,14 +60,14 @@ class OsrFile
 public:
     OsrFile(std::string fName);
     int ReadSign(); // читает до replayData
-
-    OsrSign sign;
-
 private:
     void GetVal(void* dst, char type);
-    std::vector<char>GetString();
+    std::vector<char>GetString(int lebSize);
     void ReadStruct();
 
+public:
+    OsrSign sign;
+private:
     size_t fSize;
     int offset = 0;
     std::vector<char> fileData;
@@ -86,6 +86,7 @@ public:
         return err;
     }
 
+public:
     int err;
 };
 

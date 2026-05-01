@@ -1,30 +1,15 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 crelgd
+ */
+
 #include <iostream>
-#include <bitset>   
-//#include "osr.h"
-
-int uleb128_decode(std::vector<unsigned char>& bytes)
-{
-    int out = 0;
-    int shift = 0;
-    int byteSize = bytes.size();
-
-    for (int i = 0; i < byteSize-1; i++)
-    {
-        char byteDecompile = bytes[i] & 0x7f;
-        out |= byteDecompile << shift;
-
-        shift += 7; 
-    }
-
-    out |= bytes[byteSize-1] << shift;
-
-    return out;
-}
+//#include <bitset>   
+#include "osr.h"
 
 int main(int argc, char* argv[])
 {
 
-    /*
     OsrFile file(argv[1]);
 
     int signF = file.ReadSign();
@@ -32,33 +17,26 @@ int main(int argc, char* argv[])
     if (signF != 1)
     {
         std::cout
-            << file.sign.mode << "\n"
-            << file.sign.ver << "\n"
-            << file.sign.md5card << "\n"
-            //<< file.sign.player << "\n"
-            << file.sign.md5replay << "\n"
-            << file.sign.r300 << "\n"
-            << file.sign.r100 << "\n"
-            << file.sign.r50 << "\n"
-            << file.sign.iCombos << "\n"
-            << file.sign.niCombos << "\n"
-            << file.sign.misses << "\n"
-            << file.sign.points << "\n"
-            << file.sign.maxCombo << "\n"
-            << file.sign.iiCombos << "\n"
-            << file.sign.mode << "\n"
-            << file.sign.hp << "\n"
-            << file.sign.time << "\n"
-            << file.sign.compData
+            << "MODE: " << int(file.sign.mode) << "\n"
+            << "VER: " << file.sign.ver << "\n"
+            << "MD5CARD: " << file.sign.md5card << "\n"
+            << "PLAYER: " << file.sign.player << "\n"
+            << "MD5REPLAY: " << file.sign.md5replay << "\n"
+            << "300: " << file.sign.r300 << "\n"
+            << "100: " << file.sign.r100 << "\n"
+            << "50: " << file.sign.r50 << "\n"
+            << "iCombos: " << file.sign.iCombos << "\n"
+            << "niCombos: " << file.sign.niCombos << "\n"
+            << "MISSES: " << file.sign.misses << "\n"
+            << "POINTS: " << int(file.sign.points) << "\n"
+            << "MAX COMBO: " << int(file.sign.maxCombo) << "\n"
+            << "IICOMBOS: " << int(file.sign.iiCombos) << "\n"
+            << "MODE: " << file.sign.modes << "\n"
+            << "HP: " << file.sign.hp << "\n"
+            << "TIME: " << file.sign.time << "\n"
+            << "COMP DATA SIZE: " << file.sign.compData
             << std::endl;
     } 
-    */
-
-    std::vector<unsigned char> uleb128test = {0xE5, 0x8E, 0x26};
-
-    int decode = uleb128_decode(uleb128test);
-
-    std::cout << decode << std::endl;
 
     return 0;
 }
