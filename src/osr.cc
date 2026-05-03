@@ -35,7 +35,7 @@ int OsrFile::Read()
 
     if (PlayDecode() != 0)
     {
-        std::cout << "lzma read err" << std::endl;
+        spdlog::error("Поток чтения был завершен ошибкой");
         return 1;
     }
 
@@ -98,6 +98,7 @@ void OsrFile::ReadStruct()
     if (sign.modes == (1 << 23))
     {
         sign.modInfo= GetVal<double>();
+        spdlog::info("Был загружен modInfo");
     }
 }   
 
@@ -165,7 +166,10 @@ int OsrFile::PlayDecode()
 
     errcode = lzma_auto_decoder(stream, UINT64_MAX, LZMA_IGNORE_CHECK);
     if (errcode != LZMA_OK) 
+    {
+        spdlog::error("Поток LZMA не был инициализирован");
         return 1;
+    }
 
     std::vector<uint8_t> out(8024);
 
@@ -180,7 +184,10 @@ int OsrFile::PlayDecode()
         // декод
         errcode = lzma_code(stream, LZMA_RUN);
         if (errcode != LZMA_OK && errcode != LZMA_STREAM_END)
+        {
+            spdlog::error("При декодировании произошла ошибка");
             return 1;
+        }
 
         if (errcode == LZMA_STREAM_END)
             break;

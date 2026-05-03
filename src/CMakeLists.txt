@@ -7,8 +7,16 @@ add_executable(orr
     main.cc
     osr.cc
     pch.cc 
+    
+    gui/visual.cc
 )
 
 target_compile_definitions(orr PRIVATE)
 target_precompile_headers(orr PRIVATE pch.h)
-target_link_libraries(orr ${LIB_DIR}/liblzma.lib)
+target_link_libraries(orr 
+    ${LIB_DIR}/liblzma.lib
+    ${LIB_DIR}/spdlog.lib
+    ${LIB_DIR}/SDL2.lib
+    ${LIB_DIR}/SDL2main.lib
+)
+

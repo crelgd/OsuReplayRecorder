@@ -4,9 +4,9 @@ project(OsuReplayRecorder)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
     if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        add_compile_options(-Os)
+        add_compile_options(-Os -utf-8)
     elseif (MSVC)
-        add_compile_options(/Os)
+        add_compile_options(/Os /utf-8)
     endif()
 endif()
 

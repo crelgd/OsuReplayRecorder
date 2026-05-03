@@ -4,40 +4,28 @@
  */
 
 #include <iostream>
-//#include <bitset>   
+
 #include "osr.h"
+#include "gui/visual.h"
 
 int main(int argc, char* argv[])
 {
+    try {auto logger = spdlog::basic_logger_mt("basic_logger", "logs/runtime_err.txt"); }
+    catch (spdlog::spdlog_ex& err) {
+        std::cout << "SPDLOG wasnt load, " << err.what() << std::endl;
+    }
 
-    OsrFile file(argv[1]);
-
-    int signF = file.Read();
-
-    if (signF != 1)
+    try
     {
-        std::cout
-            << "MODE: " << file.sign.mode << "\n"
-            << "VER: " << file.sign.ver << "\n"
-            << "MD5CARD: " << file.sign.md5card.c_str() << "\n"
-            << "PLAYER: " << file.sign.player.c_str() << "\n"
-            << "MD5REPLAY: " << file.sign.md5replay.c_str() << "\n"
-            << "300: " << file.sign.r300 << "\n"
-            << "100: " << file.sign.r100 << "\n"
-            << "50: " << file.sign.r50 << "\n"
-            << "iCombos: " << file.sign.iCombos << "\n"
-            << "niCombos: " << file.sign.niCombos << "\n"
-            << "MISSES: " << file.sign.misses << "\n"
-            << "POINTS: " << file.sign.points << "\n"
-            << "MAX COMBO: " << file.sign.maxCombo << "\n"
-            << "IICOMBOS: " << file.sign.iiCombos << "\n"
-            << "MODE: " << file.sign.modes << "\n"
-            << "HP: " << file.sign.hp.c_str() << "\n"
-            << "TIME: " << file.sign.time << "\n"
-            << "COMP DATA SIZE: " << file.sign.compData << "\n"
-            << "RES ID: " << file.sign.resId << "\n"
-            << std::endl;
-    } 
+        visual::window hwnd;
 
+        hwnd.run();
+    }
+    catch(const std::runtime_error& err)
+    {
+        spdlog::error(err.what());
+        return 1;
+    }
+    
     return 0;
 }
