@@ -10,3 +10,5 @@
 #define SDL_MAIN_NEEDED
 #include "SDL/SDL.h"
 
+#include "GL/glew.h"
+

@@ -18,5 +18,7 @@ target_link_libraries(orr
     ${LIB_DIR}/spdlog.lib
     ${LIB_DIR}/SDL2.lib
     ${LIB_DIR}/SDL2main.lib
+    ${LIB_DIR}/glew32.lib
+    OpenGL32.lib
 )
 
