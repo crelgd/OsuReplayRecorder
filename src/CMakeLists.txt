@@ -1,6 +1,6 @@
 include_directories(
     .
-    ../include
+    ${CMAKE_SOURCE_DIR}/include
 )
 
 add_executable(orr
@@ -8,7 +8,9 @@ add_executable(orr
     osr.cc
     pch.cc 
     
-    gui/visual.cc
+    gui/gl.cc 
+    gui/visual_event.cc 
+    gui/visual.cc 
 )
 
 target_compile_definitions(orr PRIVATE)

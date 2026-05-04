@@ -16,7 +16,6 @@ int main(int argc, char* argv[])
     try
     {
         visual::window hwnd;
-
         hwnd.run();
     }
     catch(const std::runtime_error& err)

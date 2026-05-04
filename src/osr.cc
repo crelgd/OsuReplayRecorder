@@ -5,7 +5,6 @@
 
 #include "osr.h"
 
-#include <windows.h>
 #include <fstream>
 #include <ios>
 
