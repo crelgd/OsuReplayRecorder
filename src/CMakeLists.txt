@@ -8,7 +8,7 @@ add_executable(orr
     osr.cc
     pch.cc 
     
-    gui/gl.cc 
+    gui/visual_tools.cc 
     gui/visual_event.cc 
     gui/visual.cc 
 )

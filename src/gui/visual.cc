@@ -5,7 +5,8 @@
 
 #include "gui/visual.h"
 #include "base.h"
-#include "SDL/SDL_opengl.h"  
+
+#include <cmath>
 
 namespace visual
 {
@@ -20,10 +21,10 @@ namespace visual
                 SDL_WINDOWPOS_UNDEFINED, 
                 wW, wH, 
                 SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);        
-        IFEL(hwnd, "Окно SDL не было создано");
+        IFEL(!hwnd, "Окно SDL не было создано");
 
         glContext = SDL_GL_CreateContext(hwnd);
-        IFEL(glContext, "Контекст OpenGL не был создан");
+        IFEL(!glContext, "Контекст OpenGL не был создан");
 
         glewExperimental = GL_TRUE;
         GLenum err = glewInit();
@@ -32,41 +33,15 @@ namespace visual
 
         SDL_AddEventWatch(ResizeEvent, hwnd);
 
-        float triangleVertex[] = {
-            -0.5, -0.5, 1,
-            0.5, 0.5, 1,
-            0.5, -0.5, 1
-        };
+        try{ objsInit(); }
+        catch (std::runtime_error& err) {
+            IFEL(1, err.what());
+        }
+    }
 
-        uint32_t trglVBO = CreateVBO(triangleVertex, sizeof(triangleVertex), 3, GL_STATIC_DRAW);
-        IFEL(trglVBO, "VBO треугольника не было создано");
-
-        const char* vert = "\
-        #version 330 core\n\
-        layout (location = 0) in vec3 aPos;\n\
-        out vec4 vertexColor;\n\
-        void main()\n\
-        {\n\
-            gl_Position = vec4(aPos, 1.0);\n\
-            vertexColor = vec4(0.5, 0.0, 0.0, 1.0);\n\
-        }";
-
-        const char* frag = "\
-        #version 330 core\n\
-        out vec4 FragColor;\n\
-        in vec4 vertexColor;\n\
-        void main()\n\
-        {\n\
-            FragColor = vertexColor;\n\
-        }";
-
-        uint32_t fragS = ShaderCompile(GL_FRAGMENT_SHADER, frag, 1);
-        uint32_t vertS = ShaderCompile(GL_VERTEX_SHADER, vert, 1);
-
-        triangleProg = CreateProgram(vertS, fragS);
-        IFEL(triangleProg, "Шейдеры не были соеденины");
-
-        triangle = CreateVAO(trglVBO);
+    void window::objsInit()
+    {
+        IFEL(crcl.init(0, 0, 0.5) != 0, "Круг не был создан");
     }
 
     window::~window()
@@ -91,12 +66,58 @@ namespace visual
             glClearColor(1, 1, 1, 1);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            glUseProgram(triangleProg);
-            glBindVertexArray(triangle);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            crcl.draw();
 
             SDL_GL_SwapWindow(hwnd);
             SDL_Delay(16);
         }
+    }
+
+    int Circle::init(float x, float y, float r)
+    {
+        std::vector<float> circleData;
+        int err;
+
+        for (int i = 0; i < 50; i++)
+        {
+            float theta = 2.0f * 3.1415926f * float(i) / float(50);
+            float xx = r * cosf(theta);
+            float yy = r * sinf(theta);
+
+            circleData.push_back(x+xx);
+            circleData.push_back(y+yy);
+            circleData.push_back(0.0f);
+        }
+
+        err = vertex.init(static_cast<float*>(circleData.data()), circleData.size() * sizeof(float), 
+            3, GL_STATIC_DRAW);
+        
+        if (err != 0)
+            return 1;
+
+        vertexes = circleData.size() / 3;
+
+        visualTools::shader vShader; err = vShader.init(GL_VERTEX_SHADER, vS, 1);
+        visualTools::shader fShader; err = fShader.init(GL_FRAGMENT_SHADER, fS, 1);
+
+        err = hShader.init(vShader.obj, fShader.obj);
+
+        if (err != 0)
+            return 1;
+
+        obj.init(vertex.obj);
+
+        return 0;
+    }
+
+    void Circle::draw()
+    {
+        if (vertexes == 0)
+            return;
+
+        glUseProgram(hShader.obj);
+        glBindVertexArray(obj.obj);
+        glDrawArrays(GL_LINE_LOOP, 0, vertexes);
+        glBindVertexArray(0); 
     }
 }
