@@ -8,6 +8,10 @@
 
 #include <cmath>
 
+// не сматрите на код
+// 
+// туду сделать изменение расположения курсора
+
 namespace visual
 {
     window::window()
@@ -30,8 +34,11 @@ namespace visual
         GLenum err = glewInit();
         if (GLEW_OK != err)
             throw std::runtime_error("GLEW не был инициализирован");
+    }
 
-        SDL_AddEventWatch(ResizeEvent, hwnd);
+    void window::osrSet(const char* file)
+    {
+        osrf.load(file);
 
         try{ objsInit(); }
         catch (std::runtime_error& err) {
@@ -41,7 +48,40 @@ namespace visual
 
     void window::objsInit()
     {
-        IFEL(crcl.init(0, 0, 0.5) != 0, "Круг не был создан");
+        osrf.Read();
+        OsrErr err = OSR_OK;
+
+        std::vector<uint8_t> decBfr(8024);
+
+        err = osrf.DecodeInit();
+        if (err != OSR_OK)
+            IFEL(true, "Decoder init err");
+
+        while (err != OSR_DECODE_END)
+        {
+            err = osrf.Decode(decBfr);
+
+            if (err == OSR_ERR)
+                IFEL(true, "Decode err");
+            if (err == OSR_DECODE_END)
+                break;
+
+            std::vector<osr::Decompile> decompileBfr = osr::ReadDecompile(decBfr);
+            gDec.insert(gDec.end(), decompileBfr.begin(), decompileBfr.end());
+
+            for (int i = 0; i < decBfr.size(); i++)
+            {
+                std::cout << decBfr[i];
+            }
+            std::cout << std::endl;
+        }
+
+        note.resize(gDec.size());
+        for (int i = 0; i < note.size(); i++)
+        {
+            note[i].init((float)(gDec[i].x) / 512.0f, (float)(gDec[i].y) / 384.0f, 0.1);
+            std::cout << (float)(gDec[i].x) / 512.0f << " | " << (float)(gDec[i].y) / 384.0f << std::endl;
+        }
     }
 
     window::~window()
@@ -57,20 +97,46 @@ namespace visual
         {
             while (SDL_PollEvent(&e) != 0)
             {
-                if (e.type == SDL_QUIT)
+                switch (e.type)
                 {
-                    proc = false;
+                case SDL_QUIT:
+                    {
+                        proc = false;
+                    }   
+                    break;
+
+                case SDL_WINDOWEVENT:
+                    {
+                        if (e.window.event == SDL_WINDOWEVENT_RESIZED)
+                        {
+                            ResizeEvent();
+                        }
+                    }   
+                    break;
                 }
             }
             
             glClearColor(1, 1, 1, 1);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            crcl.draw();
+            std::time_t tCur = std::time(0);
+
+            for (int i = 0; i < gDec.size(); i++)
+            {
+                if ((tCur - time) >= gDec[i].w)
+                {
+                    note[i].draw();
+                }
+            }
 
             SDL_GL_SwapWindow(hwnd);
             SDL_Delay(16);
         }
+    }
+
+    GLuint Object::GetProgram()
+    {
+        return hShader.obj;
     }
 
     int Circle::init(float x, float y, float r)

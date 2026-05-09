@@ -15,8 +15,9 @@ int main(int argc, char* argv[])
 
     try
     {
-        visual::window hwnd;
-        hwnd.run();
+        visual::window wnd;
+        wnd.osrSet(argv[1]);
+        wnd.run();
     }
     catch(const std::runtime_error& err)
     {

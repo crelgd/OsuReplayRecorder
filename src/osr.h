@@ -12,6 +12,13 @@
 // #define TYPE_ARRAY      0x7201
 // #define TYPE_STRING     0x7200
 
+typedef enum
+{
+    OSR_ERR,
+    OSR_OK,
+    OSR_DECODE_END
+} OsrErr;
+
 typedef struct
 {
     uint8_t mode;      // (0 = osu!, 1 = osu!taiko, 2 = osu!catch, 3 = osu!mania)
@@ -41,45 +48,57 @@ typedef struct
     double modInfo;         // Дополнительная информация о модах. Присутствует только при включенном моде Target Practice
 } OsrSign;
 
-class OsrFile
+namespace osr
 {
-public:
-    OsrFile(std::string fName);
-    ~OsrFile();
+    typedef struct {
+        int w, x, y, z;
+    } Decompile;
 
-    int Read();
-private:
-
-    template <typename T>
-    T GetVal()
+    class OsrFile
     {
-        T val;
-        memcpy(&val, fileData.data() + offset, sizeof(T));
-        offset += sizeof(T);
+    public:
+        ~OsrFile();
 
-        return val;
-    }
+        void load(std::string fName);
 
-    std::string GetString(int lebSize);
-    void ReadStruct();
+        OsrErr Read();
 
-    int uleb128_decode();
-    std::vector<uint8_t> uleb128_encode(int val);
+        OsrErr DecodeInit();
+        OsrErr Decode(std::vector<uint8_t>& bfr);
+    private:
 
-    int PlayDecode();
+        template <typename T>
+        T GetVal()
+        {
+            T val;
+            memcpy(&val, fileData.data() + offset, sizeof(T));
+            offset += sizeof(T);
+
+            return val;
+        }
+
+        std::string GetString(int lebSize);
+        void ReadStruct();
+
+        int uleb128_decode();
+        std::vector<uint8_t> uleb128_encode(int val);
 
 //   int lzmaPropertiesDecode(std::vector<lzma_options_lzma>& lzma_opt, 
 //          std::vector<uint8_t>& prop3);
 
-public:
-    OsrSign sign;
-private:
-    size_t fSize;
-    uint64_t offset = 0;
-    uint64_t compDataOffset = 0;
-    std::vector<uint8_t> fileData;
-    lzma_stream* stream;
-};
+    public:
+        OsrSign sign;
+    private:
+        size_t fSize;
+        uint64_t offset = 0;
+        uint64_t compDataOffset = 0;
+        std::vector<uint8_t> fileData;
+        lzma_stream* stream;
+    };
+
+    // читает весь буффер и записывает значение в виде массива из структур
+    std::vector<Decompile> ReadDecompile(std::vector<uint8_t>& bfr);
+}
 
 // class OSRException
 // {

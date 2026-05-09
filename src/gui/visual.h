@@ -5,8 +5,11 @@
 
 #pragma once
 
+#include <ctime>
+
 #include "visual_tools.h"
 #include "visual_obj.h"
+#include "osr.h"
 
 namespace visual 
 {
@@ -16,9 +19,10 @@ namespace visual
         window();
         ~window();
         void run();
+        void osrSet(const char* file);
 
     private:
-        static int ResizeEvent(void* data, SDL_Event* e);
+        void ResizeEvent();
         void objsInit();
     private:
         SDL_Window* hwnd;
@@ -28,6 +32,11 @@ namespace visual
         SDL_Event e;
         bool proc = true;
 
-        Circle crcl;
+        std::time_t time = std::time(0);
+
+        osr::OsrFile osrf;
+
+        std::vector<Circle> note;
+        std::vector<osr::Decompile> gDec;
     };
 }

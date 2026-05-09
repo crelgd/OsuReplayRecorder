@@ -7,6 +7,8 @@ namespace visual
     public:
         float oX, oY;
         float oW, oH;
+    public:
+        GLuint GetProgram();
 
     protected:
         visualTools::vbo vertex;
@@ -28,7 +30,7 @@ namespace visual
         layout (location = 0) in vec3 aPos;\n\
         void main()\n\
         {\n\
-        gl_Position = vec4(aPos, 1.0);\n\
+        gl_Position =vec4(aPos.xy, 0.0, 1.0);\n\
         }";
 
         const char* fS = "\

@@ -38,6 +38,11 @@ IF EXIST %HOME%\include\SDL (
 move SDL2-2.32.10\README-SDL.txt %LICENSE_DIR%\.
 move SDL2-2.32.10\LICENSE.txt %LICENSE_DIR%\LICENSE.sdl
 
+curl -L https://github.com/g-truc/glm/releases/download/1.0.3/glm-1.0.3.7z -o glm.zip
+tar -f glm.zip -x 
+xcopy glm\glm %HOME%\include\GL\glm /I /S
+xcopy glm\copying.txt %LICENSE_DIR%\LICENSE.glm
+
 IF "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
     xcopy glew-2.3.1\lib\Release\x64\. %HOME%\lib\. /I 
     xcopy glew-2.3.1\bin\Release\x64\glew32.dll %BIN_DIR%\.  /I 

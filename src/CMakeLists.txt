@@ -11,6 +11,7 @@ add_executable(orr
     gui/visual_tools.cc 
     gui/visual_event.cc 
     gui/visual.cc 
+    gui/decompile.cc
 )
 
 target_compile_definitions(orr PRIVATE)
