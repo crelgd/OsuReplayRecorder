@@ -53,6 +53,7 @@ namespace osr
     typedef struct {
         int w, z;
         float x, y;
+        bool readed;
     } Decompile;
 
     class OsrFile

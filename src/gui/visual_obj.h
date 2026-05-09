@@ -21,6 +21,7 @@ namespace visual
     public:
         int init(float x, float y, float r);
         void draw();
+        void ChangePos(float x, float y, float r);
 
     private:
         int vertexes = 0;

@@ -25,6 +25,7 @@ namespace osr
                 dec.x = readed[1];
                 dec.y = readed[2];
                 dec.z = int(readed[3]);
+                dec.readed = false;
 
                 outData.push_back(dec);
 

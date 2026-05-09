@@ -32,11 +32,14 @@ namespace visual
         SDL_Event e;
         bool proc = true;
 
-        std::time_t time = std::time(0);
+        uint32_t tCur = SDL_GetTicks();
+        uint32_t time = 0;
+
+        int curPlay = 0;
 
         osr::OsrFile osrf;
 
-        std::vector<Circle> note;
+        Circle cursor;
         std::vector<osr::Decompile> gDec;
     };
 }

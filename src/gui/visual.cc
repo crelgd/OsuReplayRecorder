@@ -87,11 +87,7 @@ namespace visual
 
         gDec = decompileBfr;
 
-        note.resize(decompileBfr.size());
-        for (int i = 0; i < note.size(); i++)
-        {
-            note[i].init(decompileBfr[i].x / 512.0f, decompileBfr[i].y / 384.0f, 0.1);
-        }
+        cursor.init(0, 0, 0.1);
     }
 
     window::~window()
@@ -129,15 +125,24 @@ namespace visual
             glClearColor(1, 1, 1, 1);
             glClear(GL_COLOR_BUFFER_BIT);
 
-            std::time_t tCur = std::time(0);
+            uint32_t mTime = SDL_GetTicks();
+            time += (mTime - tCur);
 
-            for (int i = 0; i < note.size(); i++)
+            if (gDec[curPlay].w < 0) curPlay++;
+
+            if (curPlay < gDec.size() && time >= gDec[curPlay].w)
             {
-                if ((tCur - time) >= gDec[i].w)
-                {
-                    note[i].draw();
-                }
+                cursor.ChangePos((gDec[curPlay].x / 512.0f) * 2.0f - 1.0f, (gDec[curPlay].y / 384.0f) * 2.0f - 1.0f, 0.1);
+                gDec[curPlay].readed = true;
+                curPlay++;
+                time = 0;
             }
+
+            // std::cout << curPlay << " | " << gDec.size() << " time: " << time << " w: " << gDec[curPlay].w << std::endl;
+
+            cursor.draw();
+
+            tCur = mTime;
 
             SDL_GL_SwapWindow(hwnd);
             SDL_Delay(16);
@@ -184,6 +189,30 @@ namespace visual
         obj.init(vertex.obj);
 
         return 0;
+    }
+
+    void Circle::ChangePos(float x, float y, float r)
+    {
+        glBindVertexArray(obj.obj);
+        glBindBuffer(GL_ARRAY_BUFFER, vertex.obj);
+
+        std::vector<float> circleData;
+
+        for (int i = 0; i < 50; i++)
+        {
+            float theta = 2.0f * 3.1415926f * float(i) / float(50);
+            float xx = r * cosf(theta);
+            float yy = r * sinf(theta);
+
+            circleData.push_back(x+xx);
+            circleData.push_back(y+yy);
+            circleData.push_back(0.0f);
+        }
+
+        glBufferSubData(GL_ARRAY_BUFFER, 0, circleData.size() * sizeof(float), circleData.data());
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
     }
 
     void Circle::draw()

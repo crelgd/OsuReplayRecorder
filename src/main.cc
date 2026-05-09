@@ -10,6 +10,15 @@
 
 int main(int argc, char* argv[])
 {
+    if (argc < 2)
+    {
+        std::cout <<
+            "Usage: orr <replay_name>" <<
+        std::endl;
+
+        return 0;
+    }
+
     auto logger = spdlog::basic_logger_mt("basic_logger", "logs/runtime_err.txt");
     spdlog::set_default_logger(logger);
 
