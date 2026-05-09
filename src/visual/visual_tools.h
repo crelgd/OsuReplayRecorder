@@ -3,6 +3,8 @@
  * Copyright (c) 2026 crelgd
  */
 
+#pragma once
+
 namespace visualTools
 {
     class vbo

@@ -1,16 +1,13 @@
 /*
- * MIT License
- * Copyright (c) 2026 crelgd
- */
+* MIT License
+* Copyright (c) 2026 crelgd
+*/
 
-#include "gui/visual.h"
+#include "visual/visual.h"
 #include "base.h"
+#include "osr.h"
 
 #include <cmath>
-
-// не сматрите на код
-// 
-// туду сделать изменение расположения курсора
 
 namespace visual
 {
@@ -39,6 +36,7 @@ namespace visual
     void window::osrSet(const char* file)
     {
         osrf.load(file);
+        osrf.Read();
 
         try{ objsInit(); }
         catch (std::runtime_error& err) {
@@ -48,7 +46,6 @@ namespace visual
 
     void window::objsInit()
     {
-        osrf.Read();
         OsrErr err = OSR_OK;
 
         std::vector<uint8_t> decBfr(8192);
@@ -71,19 +68,18 @@ namespace visual
 
             fullData.insert(fullData.end(), decBfr.begin(), decBfr.begin() + written);
         }
-        
-        std::vector<osr::Decompile> decompileBfr = osr::ReadDecompile(fullData);
-        // for (int i = 0; i < decompileBfr.size(); i++)
-        // {
-        //     std::cout << 
-        //         "w:" << decompileBfr[i].w << "\n" <<
-        //         "x:" << decompileBfr[i].x / 512.0f << "\n" <<
-        //         "y:" << decompileBfr[i].y / 384.0f << "\n" <<
-        //         "z:" << decompileBfr[i].z << "\n";
+            
+        std::vector<OsrDecompile> decompileBfr = ReadDecompile(fullData);
 
-        // }
-
-        // std::cout << std::endl;
+            // for (int i = 0; i < decompileBfr.size(); i++)
+            // {
+            //     std::cout << 
+            //         "w:" << decompileBfr[i].w << "\n" <<
+            //         "x:" << decompileBfr[i].x / 512.0f << "\n" <<
+            //         "y:" << decompileBfr[i].y / 384.0f << "\n" <<
+            //         "z:" << decompileBfr[i].z << "\n";
+            // }
+            // std::cout << std::endl;
 
         gDec = decompileBfr;
 
@@ -115,32 +111,35 @@ namespace visual
                     {
                         if (e.window.event == SDL_WINDOWEVENT_RESIZED)
                         {
-                            ResizeEvent();
+                            SDL_GetWindowSize(hwnd, &wW, &wH);
+                            glViewport(0, 0, wW, wH);
                         }
                     }   
                     break;
                 }
             }
-            
+                
             glClearColor(1, 1, 1, 1);
             glClear(GL_COLOR_BUFFER_BIT);
 
             uint32_t mTime = SDL_GetTicks();
             time += (mTime - tCur);
 
-            if (gDec[curPlay].w < 0) curPlay++;
+            if (curPlay < gDec.size() && gDec[curPlay].w < 0) curPlay++;
 
             if (curPlay < gDec.size() && time >= gDec[curPlay].w)
             {
                 cursor.ChangePos((gDec[curPlay].x / 512.0f) * 2.0f - 1.0f, (gDec[curPlay].y / 384.0f) * 2.0f - 1.0f, 0.1);
-                gDec[curPlay].readed = true;
                 curPlay++;
                 time = 0;
+
+                if (curPlay >= gDec.size())
+                    proc = false;
             }
 
             // std::cout << curPlay << " | " << gDec.size() << " time: " << time << " w: " << gDec[curPlay].w << std::endl;
 
-            cursor.draw();
+             cursor.draw();
 
             tCur = mTime;
 
@@ -149,9 +148,37 @@ namespace visual
         }
     }
 
-    GLuint Object::GetProgram()
+    std::vector<OsrDecompile> window::ReadDecompile(std::vector<uint8_t>& bfr)
     {
-        return hShader.obj;
+        std::vector<OsrDecompile> outData;
+        std::vector<char> numBfr;
+
+        std::vector<float> readed;
+
+        for (int i = 0; i < bfr.size(); i++)
+        {
+            if (bfr[i] == '|' || bfr[i] == ',') {
+                std::string tmp(numBfr.begin(), numBfr.end());
+                readed.push_back(std::stof(tmp));
+                numBfr.clear();
+            }
+            else numBfr.push_back(bfr[i]);
+
+            if (readed.size() == 4)
+            {
+                OsrDecompile dec; 
+                dec.w = int(readed[0]);
+                dec.x = readed[1];
+                dec.y = readed[2];
+                dec.z = int(readed[3]);
+
+                outData.push_back(dec);
+
+                readed.clear();
+            }
+        }
+
+        return outData;
     }
 
     int Circle::init(float x, float y, float r)
@@ -172,7 +199,7 @@ namespace visual
 
         err = vertex.init(static_cast<float*>(circleData.data()), circleData.size() * sizeof(float), 
             3, GL_STATIC_DRAW);
-        
+            
         if (err != 0)
             return 1;
 

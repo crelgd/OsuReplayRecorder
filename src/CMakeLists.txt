@@ -5,13 +5,12 @@ include_directories(
 
 add_executable(orr
     main.cc
+    base.cc
     osr.cc
     pch.cc 
     
-    gui/visual_tools.cc 
-    gui/visual_event.cc 
-    gui/visual.cc 
-    gui/decompile.cc
+    visual/visual_tools.cc 
+    visual/visual.cc 
 )
 
 target_compile_definitions(orr PRIVATE)

@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "osr.h"
-#include "gui/visual.h"
+#include "visual/visual.h"
 
 int main(int argc, char* argv[])
 {

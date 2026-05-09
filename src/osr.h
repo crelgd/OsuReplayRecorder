@@ -6,6 +6,7 @@
 #pragma once
 
 #include "lzma/lzma.h"
+#include "base.h"
 
 #define TYPE    reinterpret_cast
 
@@ -18,6 +19,11 @@ typedef enum
     OSR_OK,
     OSR_DECODE_END
 } OsrErr;
+
+typedef struct {
+    int w, z;
+    float x, y;
+} OsrDecompile;
 
 typedef struct
 {
@@ -50,31 +56,25 @@ typedef struct
 
 namespace osr
 {
-    typedef struct {
-        int w, z;
-        float x, y;
-        bool readed;
-    } Decompile;
-
-    class OsrFile
+    class OsrFile : public base::File
     {
     public:
         ~OsrFile();
 
-        void load(std::string fName);
-
         OsrErr Read();
-
         OsrErr DecodeInit();
         OsrErr Decode(std::vector<uint8_t>& bfr, size_t& written);
+    public:
+        OsrSign sign;
+
     private:
 
         template <typename T>
         T GetVal()
         {
             T val;
-            memcpy(&val, fileData.data() + offset, sizeof(T));
-            offset += sizeof(T);
+            memcpy(&val, fileData.data() + fileOffset, sizeof(T));
+            fileOffset += sizeof(T);
 
             return val;
         }
@@ -84,22 +84,10 @@ namespace osr
 
         int uleb128_decode();
         std::vector<uint8_t> uleb128_encode(int val);
-
-//   int lzmaPropertiesDecode(std::vector<lzma_options_lzma>& lzma_opt, 
-//          std::vector<uint8_t>& prop3);
-
-    public:
-        OsrSign sign;
     private:
-        size_t fSize;
-        uint64_t offset = 0;
         uint64_t compDataOffset = 0;
-        std::vector<uint8_t> fileData;
         lzma_stream* stream;
     };
-
-    // читает весь буффер и записывает значение в виде массива из структур
-    std::vector<Decompile> ReadDecompile(std::vector<uint8_t>& bfr);
 }
 
 // class OSRException

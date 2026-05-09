@@ -11,25 +11,10 @@
 
 namespace osr
 {
-
-    void OsrFile::load(std::string fName)
-    {
-        std::ifstream file(fName, std::ios::in | std::ios::binary);
-
-        file.seekg(0, std::ios::end);
-        fSize = file.tellg();
-        file.seekg(0, std::ios::beg);
-
-        std::vector<uint8_t> tv(fSize);
-        file.read(TYPE<char*>(tv.data()), fSize);
-
-        fileData = tv;
-    }
-
     // не буду убирать лень
     OsrErr OsrFile::Read()
     {
-        if (fileData.size() < fSize)
+        if (fileData.size() < fileSize)
         {
             return OSR_ERR;
         }
@@ -58,8 +43,7 @@ namespace osr
                 int strSize = uleb128_decode();
                 str.resize(strSize);
             
-                memcpy(&str[0], fileData.data() + offset, strSize);
-                offset += strSize;
+                fileOffset += strSize;
             }
             break;
         }
@@ -88,8 +72,8 @@ namespace osr
         sign.time       = GetVal<uint64_t>();
         sign.compData   = GetVal<uint32_t>();
 
-        compDataOffset = offset; 
-        offset = compDataOffset + sign.compData;
+        compDataOffset = fileOffset; 
+        fileOffset = compDataOffset + sign.compData;
 
         sign.resId      = GetVal<uint64_t>();
 
