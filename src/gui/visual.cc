@@ -51,36 +51,46 @@ namespace visual
         osrf.Read();
         OsrErr err = OSR_OK;
 
-        std::vector<uint8_t> decBfr(8024);
+        std::vector<uint8_t> decBfr(8192);
 
         err = osrf.DecodeInit();
         if (err != OSR_OK)
             IFEL(true, "Decoder init err");
 
+        std::vector<uint8_t> fullData;
+
         while (err != OSR_DECODE_END)
         {
-            err = osrf.Decode(decBfr);
+            size_t written;
+            err = osrf.Decode(decBfr, written);
 
             if (err == OSR_ERR)
                 IFEL(true, "Decode err");
             if (err == OSR_DECODE_END)
                 break;
 
-            std::vector<osr::Decompile> decompileBfr = osr::ReadDecompile(decBfr);
-            gDec.insert(gDec.end(), decompileBfr.begin(), decompileBfr.end());
-
-            for (int i = 0; i < decBfr.size(); i++)
-            {
-                std::cout << decBfr[i];
-            }
-            std::cout << std::endl;
+            fullData.insert(fullData.end(), decBfr.begin(), decBfr.begin() + written);
         }
+        
+        std::vector<osr::Decompile> decompileBfr = osr::ReadDecompile(fullData);
+        // for (int i = 0; i < decompileBfr.size(); i++)
+        // {
+        //     std::cout << 
+        //         "w:" << decompileBfr[i].w << "\n" <<
+        //         "x:" << decompileBfr[i].x / 512.0f << "\n" <<
+        //         "y:" << decompileBfr[i].y / 384.0f << "\n" <<
+        //         "z:" << decompileBfr[i].z << "\n";
 
-        note.resize(gDec.size());
+        // }
+
+        // std::cout << std::endl;
+
+        gDec = decompileBfr;
+
+        note.resize(decompileBfr.size());
         for (int i = 0; i < note.size(); i++)
         {
-            note[i].init((float)(gDec[i].x) / 512.0f, (float)(gDec[i].y) / 384.0f, 0.1);
-            std::cout << (float)(gDec[i].x) / 512.0f << " | " << (float)(gDec[i].y) / 384.0f << std::endl;
+            note[i].init(decompileBfr[i].x / 512.0f, decompileBfr[i].y / 384.0f, 0.1);
         }
     }
 
@@ -121,7 +131,7 @@ namespace visual
 
             std::time_t tCur = std::time(0);
 
-            for (int i = 0; i < gDec.size(); i++)
+            for (int i = 0; i < note.size(); i++)
             {
                 if ((tCur - time) >= gDec[i].w)
                 {

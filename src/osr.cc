@@ -161,7 +161,7 @@ namespace osr
         return OSR_OK;
     }
 
-    OsrErr OsrFile::Decode(std::vector<uint8_t>& bfr)
+    OsrErr OsrFile::Decode(std::vector<uint8_t>& bfr, size_t& written)
     {
         lzma_ret errcode;
 
@@ -170,6 +170,8 @@ namespace osr
 
         // декод
         errcode = lzma_code(stream, LZMA_RUN);
+        written = bfr.size() - stream->avail_out;
+
         if (errcode != LZMA_OK && errcode != LZMA_STREAM_END)
         {
             spdlog::error("При декодировании произошла ошибка");

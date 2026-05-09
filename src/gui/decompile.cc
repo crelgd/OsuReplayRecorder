@@ -7,12 +7,13 @@ namespace osr
         std::vector<Decompile> outData;
         std::vector<char> numBfr;
 
-        std::vector<int> readed;
+        std::vector<float> readed;
 
         for (int i = 0; i < bfr.size(); i++)
         {
             if (bfr[i] == '|' || bfr[i] == ',') {
-                readed.push_back(std::stoi(numBfr.data()));
+                std::string tmp(numBfr.begin(), numBfr.end());
+                readed.push_back(std::stof(tmp));
                 numBfr.clear();
             }
             else numBfr.push_back(bfr[i]);
@@ -20,10 +21,10 @@ namespace osr
             if (readed.size() == 4)
             {
                 Decompile dec; 
-                dec.w = readed[0];
+                dec.w = int(readed[0]);
                 dec.x = readed[1];
                 dec.y = readed[2];
-                dec.z = readed[3];
+                dec.z = int(readed[3]);
 
                 outData.push_back(dec);
 

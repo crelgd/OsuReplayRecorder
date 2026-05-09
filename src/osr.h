@@ -51,7 +51,8 @@ typedef struct
 namespace osr
 {
     typedef struct {
-        int w, x, y, z;
+        int w, z;
+        float x, y;
     } Decompile;
 
     class OsrFile
@@ -64,7 +65,7 @@ namespace osr
         OsrErr Read();
 
         OsrErr DecodeInit();
-        OsrErr Decode(std::vector<uint8_t>& bfr);
+        OsrErr Decode(std::vector<uint8_t>& bfr, size_t& written);
     private:
 
         template <typename T>
