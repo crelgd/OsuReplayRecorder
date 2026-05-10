@@ -7,6 +7,18 @@
 
 #include "osu.h"
 
+// туду исправить вывод
+// из входа
+//
+// [diwqewqe]
+// val: val
+// val2: val2
+//
+//  | val:wqewqe]
+// name:al | val:val
+// name: | val:
+// name:al2 | val:val2
+
 namespace osu
 {
     std::string OsuFile::ParserGetSection()
