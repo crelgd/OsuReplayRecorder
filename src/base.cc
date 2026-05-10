@@ -23,6 +23,11 @@ namespace base
         fileData = tv;
     }
 
+    cFileErr File::GetError()
+    {
+        return err;
+    }
+
     GLuint Object::GetProgram()
     {
         return hShader.obj;

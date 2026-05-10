@@ -68,17 +68,6 @@ namespace osr
         OsrSign sign;
 
     private:
-
-        template <typename T>
-        T GetVal()
-        {
-            T val;
-            memcpy(&val, fileData.data() + fileOffset, sizeof(T));
-            fileOffset += sizeof(T);
-
-            return val;
-        }
-
         std::string GetString(int lebSize);
         void ReadStruct();
 

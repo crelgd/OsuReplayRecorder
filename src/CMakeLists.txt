@@ -7,6 +7,7 @@ add_executable(orr
     main.cc
     base.cc
     osr.cc
+    osu.cc
     pch.cc 
     
     visual/visual_tools.cc 
