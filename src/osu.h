@@ -5,6 +5,8 @@
 
 // МОЖЕТ НЕ ПРАВИЛЬНО ЧИТАТЬ ФАЙЛЫ ИЗ ПРОТИВОПОЛОЖНОЙ ОС
 
+// при новой строке в конце может выдавать ошибку какуюта
+
 #pragma once
 
 #include "base.h"
@@ -14,6 +16,10 @@ typedef struct
     std::string name;
     std::string val;
 } ConfOsuValue;
+
+#ifdef _WIN32
+const char NEW_LINE[2] = {'\r', '\n'};
+#endif
 
 namespace osu
 {
@@ -41,7 +47,7 @@ namespace osu
         // - CFILE_END
         // - CFILE_NEW_SECTION
         // - CFILE_OK
-        cFileErr SkipVal(const char val);
+        cFileErr SkipVal(const char* val, uint8_t bCount);
     private:
         std::string Section;
     };

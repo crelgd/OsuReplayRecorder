@@ -7,23 +7,11 @@
 
 #include "osu.h"
 
-// туду исправить вывод
-// из входа
-//
-// [diwqewqe]
-// val: val
-// val2: val2
-//
-//  | val:wqewqe]
-// name:al | val:val
-// name: | val:
-// name:al2 | val:val2
-
 namespace osu
 {
     std::string OsuFile::ParserGetSection()
     {
-        err = SkipVal('\n');
+        err = SkipVal(NEW_LINE, 2);
 
         if (Section.size() != 0)
             return Section;
@@ -42,7 +30,14 @@ namespace osu
                     return "";
                 }
 
-                statSection += fileData[fileOffset++];
+                statSection += fileData[fileOffset];
+                fileOffset++;
+            }
+
+            if (fileData[fileOffset] == '[' || 
+                fileData[fileOffset] == ']')
+            {
+                fileOffset++;
             }
         }
         else if (fileData[fileOffset] != '[')
@@ -54,18 +49,27 @@ namespace osu
         return Section = statSection;
     }
 
-    cFileErr OsuFile::SkipVal(const char val)
+    // пусть будет так
+    cFileErr OsuFile::SkipVal(const char* val, uint8_t bCount)
     {
-        uint64_t statOffset = fileOffset;
+        // бля ну ладна
+        if (fileOffset >= fileData.size())
+        {
+            return CFILE_END;
+        }
 
-        while (fileData[fileOffset++] == val)
+        while (memcmp(fileData.data() + fileOffset, val, bCount) == 0)
         {
             if (fileOffset >= fileData.size())
             {
-                fileOffset = statOffset;
                 return CFILE_END;
             }
+
+            fileOffset+=bCount;
         }
+
+        if (memcmp(fileData.data() + fileOffset, val, bCount) == 0)
+            fileOffset+=bCount;
 
         if (fileData[fileOffset] == '[') 
             return CFILE_NEW_SECTION;
@@ -76,6 +80,7 @@ namespace osu
     void OsuFile::ParserClearSection()
     {
         Section = "";
+        err = CFILE_OK;
     }
 
     ConfOsuValue OsuFile::ParserGetValue()
@@ -85,12 +90,12 @@ namespace osu
 
         std::vector<std::string> valArr(2);
 
-        err = SkipVal('\n');
+        err = SkipVal(NEW_LINE, 2);
         if (err == CFILE_END || err == CFILE_NEW_SECTION)
             return {};
 
         while (fileOffset < fileData.size() && 
-            fileData[fileOffset] != '\n')
+            fileData[fileOffset] != '\r')
         {
             if (valIndex > valArr.size()-1)
             {
@@ -100,7 +105,9 @@ namespace osu
 
             if (fileData[fileOffset] == ':')
             {
-                err = SkipVal(':');
+                const char* valS = ":";
+                err = SkipVal(valS, 1);
+
                 valIndex++;
 
                 if (err != CFILE_OK)
