@@ -28,16 +28,20 @@ namespace osu
     class OsuFile : public base::File
     {
     public:
-        cFileErr ReadGeneral();
+        cFileErr ReadGeneralSection();
         cFileErr ReadStruct();
         // GetError возвращает 
         // - CFILE_OK если курсор не на секции
+        // уточннение если курсор не на начале секкции '['
         // - CFILE_ERR если курсор выходит за файл
         // - CFILE_END есликонец файла (можно проверять без пустой строки)
         std::string ParserGetSection();
         void ParserClearSection();
         // GetError возвращает
         ConfOsuValue ParserGetValue();
+        std::vector<uint16_t> ParserGetComaSeparatedValue();
+        // вызывать в цикле с проверкой на конец файла
+        cFileErr SkipComment();
 
     private:
         // единственная функция где используется FILE_END

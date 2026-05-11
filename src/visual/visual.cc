@@ -5,7 +5,6 @@
 
 #include "visual/visual.h"
 #include "base.h"
-#include "osr.h"
 
 #include <cmath>
 

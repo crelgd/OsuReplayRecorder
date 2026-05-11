@@ -13,7 +13,8 @@ typedef enum
     CFILE_ERR,
     CFILE_END,
 
-    CFILE_NEW_SECTION
+    CFILE_NEW_SECTION,
+    CFILE_SKIP_NOTH
 } cFileErr;
 
 #include "visual/visual_tools.h"

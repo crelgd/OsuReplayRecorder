@@ -5,7 +5,7 @@
 
 // МОЖЕТ НЕ ПРАВИЛЬНО ЧИТАТЬ ФАЙЛЫ ИЗ ПРОТИВОПОЛОЖНОЙ ОС
 
-#include "osu.h"
+#include "file/osu.h"
 
 namespace osu
 {
@@ -22,7 +22,7 @@ namespace osu
         {
             fileOffset++;
             while (fileData[fileOffset] != ']' && 
-                fileData[fileOffset] != '[')
+                    fileData[fileOffset] != '[')
             {
                 if (fileOffset >= fileData.size())
                 {
@@ -35,7 +35,7 @@ namespace osu
             }
 
             if (fileData[fileOffset] == '[' || 
-                fileData[fileOffset] == ']')
+                    fileData[fileOffset] == ']')
             {
                 fileOffset++;
             }
@@ -57,6 +57,9 @@ namespace osu
         {
             return CFILE_END;
         }
+
+        if (memcmp(fileData.data() + fileOffset, val, bCount) != 0)
+            return CFILE_SKIP_NOTH;
 
         while (memcmp(fileData.data() + fileOffset, val, bCount) == 0)
         {
@@ -95,7 +98,7 @@ namespace osu
             return {};
 
         while (fileOffset < fileData.size() && 
-            fileData[fileOffset] != '\r')
+                fileData[fileOffset] != '\r')
         {
             if (valIndex > valArr.size()-1)
             {
@@ -125,13 +128,70 @@ namespace osu
         return val;
     }
 
-    cFileErr OsuFile::ReadGeneral()
+    cFileErr OsuFile::SkipComment()
     {
+        if (fileData[fileOffset] == '/' && 
+                fileData[fileOffset] == '/')
+        {
+            for (int i = 0; i < fileData.size() - fileOffset; i++)
+            {
+                err = SkipVal(NEW_LINE, 2);
+                if (err != CFILE_SKIP_NOTH)
+                    break;
+
+                fileOffset++;
+            }
+        }
+
         return CFILE_OK;
+    }
+
+    std::vector<uint16_t> OsuFile::ParserGetComaSeparatedValue()
+    {
+        std::vector<uint16_t> valList;
+        std::string valBfr = "";
+
+        err = SkipVal(NEW_LINE, 2);
+        if (err == CFILE_END || err == CFILE_NEW_SECTION)
+            return {};
+
+        while (fileOffset < fileData.size() && 
+                fileData[fileOffset] != '\r')
+        {
+            SkipComment();
+
+            if (fileData[fileOffset] == ',' || 
+                    fileData[fileOffset+1] == '\r')
+            {
+                valList.push_back(std::stoi(valBfr));
+                valBfr.clear();
+            }
+
+            valBfr += fileData[fileOffset];
+
+            fileOffset++;
+        }
+
+        return valList;
+    }
+
+    ConfOsuValue OsuFile::ReadGeneralSection()
+    {
+        
     }
 
     cFileErr OsuFile::ReadStruct()
     {
+        while (err != CFILE_END)
+        {
+            std::string sectionName = ParserGetSection();
+
+            if (sectionName.size() == strlen("Events"))
+            {
+                //
+            }
+        }
+
         return CFILE_OK;
     }
 }

@@ -8,7 +8,7 @@
 #include <ctime>
 
 #include "visual/visual_tools.h"
-#include "osr.h"
+#include "file/osr.h"
 
 namespace visual 
 {

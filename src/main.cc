@@ -6,9 +6,8 @@
 #include <iostream>
 
 #include "visual/visual.h"
-#include "osr.h"
-
-#include "osu.h"
+#include "file/osr.h"
+#include "file/osu.h"
 
 int main(int argc, char* argv[])
 {
