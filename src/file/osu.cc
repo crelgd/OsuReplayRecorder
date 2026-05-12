@@ -53,7 +53,7 @@ namespace osu
     cFileErr OsuFile::SkipVal(const char* val, uint8_t bCount)
     {
         // бля ну ладна
-        if (fileOffset >= fileData.size())
+        if (fileOffset >= fileSize)
         {
             return CFILE_END;
         }
@@ -97,8 +97,8 @@ namespace osu
         if (err == CFILE_END || err == CFILE_NEW_SECTION)
             return {};
 
-        while (fileOffset < fileData.size() && 
-                fileData[fileOffset] != '\r')
+        while (fileOffset < fileSize && 
+                fileData[fileOffset] != '\n')
         {
             if (valIndex > valArr.size()-1)
             {
@@ -131,9 +131,9 @@ namespace osu
     cFileErr OsuFile::SkipComment()
     {
         if (fileData[fileOffset] == '/' && 
-                fileData[fileOffset] == '/')
+                fileData[fileOffset+1] == '/')
         {
-            for (int i = 0; i < fileData.size() - fileOffset; i++)
+            while (fileOffset < fileSize)
             {
                 err = SkipVal(NEW_LINE, 2);
                 if (err != CFILE_SKIP_NOTH)
@@ -146,39 +146,50 @@ namespace osu
         return CFILE_OK;
     }
 
-    std::vector<uint16_t> OsuFile::ParserGetComaSeparatedValue()
+    std::vector<int> OsuFile::ParserGetComaSeparatedValue()
     {
-        std::vector<uint16_t> valList;
+        std::vector<int> valList;
         std::string valBfr = "";
 
         err = SkipVal(NEW_LINE, 2);
         if (err == CFILE_END || err == CFILE_NEW_SECTION)
             return {};
 
-        while (fileOffset < fileData.size() && 
-                fileData[fileOffset] != '\r')
+        while (fileOffset < fileSize && 
+                fileData[fileOffset] != '\n')
         {
             SkipComment();
 
-            if (fileData[fileOffset] == ',' || 
-                    fileData[fileOffset+1] == '\r')
+            if (fileData[fileOffset] == ',')
             {
                 valList.push_back(std::stoi(valBfr));
                 valBfr.clear();
+                if (fileOffset < fileSize)
+                    fileOffset++;
+            } 
+            else // как я недодумался
+            {
+                valBfr += fileData[fileOffset];
+
+                if (fileOffset < fileSize)
+                    fileOffset++;
             }
-
-            valBfr += fileData[fileOffset];
-
-            fileOffset++;
         }
+
+        if (!valBfr.empty())
+        {
+            valList.push_back(std::stoi(valBfr));
+        }
+
+        std::cout << "end in sym: " << fileOffset << std::endl; 
 
         return valList;
     }
 
-    ConfOsuValue OsuFile::ReadGeneralSection()
-    {
+    // ConfOsuValue OsuFile::ReadGeneralSection()
+    // {
         
-    }
+    // }
 
     cFileErr OsuFile::ReadStruct()
     {

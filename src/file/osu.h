@@ -28,7 +28,7 @@ namespace osu
     class OsuFile : public base::File
     {
     public:
-        cFileErr ReadGeneralSection();
+        // cFileErr ReadGeneralSection();
         cFileErr ReadStruct();
         // GetError возвращает 
         // - CFILE_OK если курсор не на секции
@@ -39,7 +39,7 @@ namespace osu
         void ParserClearSection();
         // GetError возвращает
         ConfOsuValue ParserGetValue();
-        std::vector<uint16_t> ParserGetComaSeparatedValue();
+        std::vector<int> ParserGetComaSeparatedValue();
         // вызывать в цикле с проверкой на конец файла
         cFileErr SkipComment();
 
