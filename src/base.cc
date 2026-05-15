@@ -27,10 +27,5 @@ namespace base
     {
         return err;
     }
-
-    GLuint Object::GetProgram()
-    {
-        return hShader.obj;
-    }
 }
 

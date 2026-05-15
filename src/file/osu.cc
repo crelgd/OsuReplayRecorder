@@ -146,10 +146,12 @@ namespace osu
         return CFILE_OK;
     }
 
-    std::vector<int> OsuFile::ParserGetComaSeparatedValue()
+    // похуй на код кароче
+    std::vector<int64_t> OsuFile::ParserGetComaSeparatedValue()
     {
-        std::vector<int> valList;
+        std::vector<int64_t> valList;
         std::string valBfr = "";
+        bool nstdType = false;
 
         err = SkipVal(NEW_LINE, 2);
         if (err == CFILE_END || err == CFILE_NEW_SECTION)
@@ -162,18 +164,37 @@ namespace osu
 
             if (fileData[fileOffset] == ',')
             {
+                if (nstdType) valList.push_back(std::stoul(valBfr) | OSU_CODE);
+                else valList.push_back(std::stoul(valBfr));
+
+                nstdType = false;
+
+                valBfr.clear();
+            }
+            else if (fileData[fileOffset] == ':' || fileData[fileOffset] == '|')
+            {
                 valList.push_back(std::stoi(valBfr));
                 valBfr.clear();
-                if (fileOffset < fileSize)
-                    fileOffset++;
-            } 
+
+                nstdType = true;
+            }
             else // как я недодумался
             {
-                valBfr += fileData[fileOffset];
+                for (int i = 0; i < 4; i++)
+                {
+                    if (fileData[fileOffset] == OsuSliderCode[i].type)
+                    {
+                        valList.push_back(static_cast<int64_t>(OsuSliderCode[i].code));
+                        fileOffset++; SkipVal("|", 1);
+                        continue;
+                    }
+                }
 
-                if (fileOffset < fileSize)
-                    fileOffset++;
+                valBfr += fileData[fileOffset];
             }
+
+            if (fileOffset < fileSize)
+                    fileOffset++;
         }
 
         if (!valBfr.empty())
@@ -181,7 +202,7 @@ namespace osu
             valList.push_back(std::stoi(valBfr));
         }
 
-        std::cout << "end in sym: " << fileOffset << std::endl; 
+        LOG("end in sym: " << fileOffset);
 
         return valList;
     }

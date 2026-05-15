@@ -179,26 +179,4 @@ namespace osr
     }
 }
 
-// int OsrFile::lzmaPropertiesDecode(std::vector<lzma_options_lzma>& lzma_opt, 
-//         std::vector<uint8_t>& prop3)
-// {
-//     if (prop3.size() != 3)
-//         return 1;
-
-//     if (lzma_opt.size() != 3)
-//         return 1;
-
-//     for (int i = 0; i < 3; i++)
-//     {
-//         if (prop3[i] > (4 * 5 + 4) * 9 + 8)
-//             return 1;
-
-//         lzma_opt[i].pb = prop3[i] / (9 * 5);
-//         prop3[i] -= lzma_opt[i].pb * 9 * 5;
-//         lzma_opt[i].lp = prop3[i] / 9;
-//         lzma_opt[i].lc = prop3[i] - lzma_opt[i].lp * 9;
-//     }
-
-//     return 0;
-// }
 

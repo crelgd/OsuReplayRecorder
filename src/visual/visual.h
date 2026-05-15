@@ -12,7 +12,21 @@
 
 namespace visual 
 {
-    class Circle : public base::Object
+    class Object
+    {
+    public:
+        float oX, oY;
+        float oW, oH;
+    public:
+        GLuint GetProgram();
+
+    protected:
+        visualTools::vbo vertex;
+        visualTools::program hShader;
+        visualTools::vao obj;
+    };
+
+    class Circle : public Object
     {
     public:
         int init(float x, float y, float r);

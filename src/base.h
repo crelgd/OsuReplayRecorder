@@ -7,6 +7,12 @@
 
 #define IFEL(val, msg) { if (val) throw std::runtime_error(std::string(msg)); }
 
+#ifdef _DEBUG
+#   define LOG(val) std::cout << val << std::endl;
+#else
+#   define LOG(val)
+#endif
+
 typedef enum 
 {
     CFILE_OK,
@@ -16,8 +22,6 @@ typedef enum
     CFILE_NEW_SECTION,
     CFILE_SKIP_NOTH
 } cFileErr;
-
-#include "visual/visual_tools.h"
 
 namespace base
 {
@@ -47,20 +51,6 @@ namespace base
         uint64_t fileOffset = 0;
         std::vector<uint8_t> fileData;
         cFileErr err = CFILE_OK;         
-    };
-
-    class Object
-    {
-    public:
-        float oX, oY;
-        float oW, oH;
-    public:
-        GLuint GetProgram();
-
-    protected:
-        visualTools::vbo vertex;
-        visualTools::program hShader;
-        visualTools::vao obj;
     };
 }
 

@@ -70,15 +70,17 @@ namespace visual
             
         std::vector<OsrDecompile> decompileBfr = ReadDecompile(fullData);
 
-            // for (int i = 0; i < decompileBfr.size(); i++)
-            // {
-            //     std::cout << 
-            //         "w:" << decompileBfr[i].w << "\n" <<
-            //         "x:" << decompileBfr[i].x / 512.0f << "\n" <<
-            //         "y:" << decompileBfr[i].y / 384.0f << "\n" <<
-            //         "z:" << decompileBfr[i].z << "\n";
-            // }
-            // std::cout << std::endl;
+#ifdef _DEBUG
+        for (int i = 0; i < decompileBfr.size(); i++)
+        {
+            std::cout << 
+                "w:" << decompileBfr[i].w << "\n" <<
+                "x:" << decompileBfr[i].x / 512.0f << "\n" <<
+                "y:" << decompileBfr[i].y / 384.0f << "\n" <<
+                "z:" << decompileBfr[i].z << "\n";
+        }
+        std::cout << std::endl;
+#endif
 
         gDec = decompileBfr;
 
@@ -123,6 +125,7 @@ namespace visual
 
             uint32_t mTime = SDL_GetTicks();
             time += (mTime - tCur);
+            LOG(time);
 
             if (curPlay < gDec.size() && gDec[curPlay].w < 0) curPlay++;
 
@@ -136,9 +139,9 @@ namespace visual
                     proc = false;
             }
 
-            // std::cout << curPlay << " | " << gDec.size() << " time: " << time << " w: " << gDec[curPlay].w << std::endl;
+            LOG(curPlay << " | " << gDec.size() << " time: " << time << " w: " << gDec[curPlay].w);
 
-             cursor.draw();
+            cursor.draw();
 
             tCur = mTime;
 
@@ -250,5 +253,10 @@ namespace visual
         glBindVertexArray(obj.obj);
         glDrawArrays(GL_LINE_LOOP, 0, vertexes);
         glBindVertexArray(0); 
+    }
+
+    GLuint Object::GetProgram()
+    {
+        return hShader.obj;
     }
 }
