@@ -28,12 +28,18 @@ int main(int argc, char* argv[])
         while (CFILE_NEW_SECTION != file.GetError() )
         {
             if (CFILE_END == file.GetError())
+            {
+                std::cout << "CFILE_END != file.GetError()\n";
                 break;
+            }
 
             ConfOsuValue val = file.ParserGetValue();
 
             if (val.name.empty())
+            {
+                std::cout << "val.name.empty() " << file.GetError() << "\n";
                 break;
+            }
 
             std::cout << "name:" << val.name.c_str() <<
                 " | val:" << val.val.c_str() <<

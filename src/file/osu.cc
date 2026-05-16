@@ -74,6 +74,12 @@ namespace osu
         if (memcmp(fileData.data() + fileOffset, val, bCount) == 0)
             fileOffset+=bCount;
 
+        // чтоб не вылетало, вообще хз как сделать
+        if (fileOffset >= fileSize)
+        {
+            return CFILE_END;
+        }
+
         if (fileData[fileOffset] == '[') 
             return CFILE_NEW_SECTION;
 
@@ -98,7 +104,7 @@ namespace osu
             return {};
 
         while (fileOffset < fileSize && 
-                fileData[fileOffset] != '\n')
+                fileData[fileOffset] != '\r') // не менять на \n, ломает скип пробелов
         {
             if (valIndex > valArr.size()-1)
             {
@@ -113,7 +119,7 @@ namespace osu
 
                 valIndex++;
 
-                if (err != CFILE_OK)
+                if (err != CFILE_OK && err != CFILE_SKIP_NOTH)
                     return {};
             }
 
