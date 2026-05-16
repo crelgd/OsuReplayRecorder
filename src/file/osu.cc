@@ -213,23 +213,63 @@ namespace osu
         return valList;
     }
 
-    // ConfOsuValue OsuFile::ReadGeneralSection()
-    // {
-        
-    // }
-
-    cFileErr OsuFile::ReadStruct()
+    cFileErr OsuFile::ReadGeneralSection(OsuGlobalSection &glsec)
     {
-        while (err != CFILE_END)
-        {
-            std::string sectionName = ParserGetSection();
+        cFileErr skip = SkipVal(NEW_LINE, 2);
 
-            if (sectionName.size() == strlen("Events"))
+        if (skip == CFILE_ERR)
+            return CFILE_ERR;
+
+        if (!Section.empty())
+            ParserClearSection();
+
+        std::string pcSection = ParserGetSection();
+
+        if (pcSection.empty())
+            return GetError();
+
+        err = CFILE_OK;
+        glsec = {};
+
+        if (pcSection.compare("General") == 0)
+        {
+            while (err != CFILE_NEW_SECTION)
             {
-                //
+                if (err == CFILE_END || err == CFILE_ERR)
+                    return err;
+
+                ConfOsuValue cov = ParserGetValue();
+                if (err == CFILE_ERR) // 
+                    return err;
+
+                OSU_WRITEVAL("AudioFilename", cov, glsec.AudioFileName, cov.val);
+                OSU_WRITEVAL("AudioLeadIn", cov, glsec.AudioLeadIn, std::stoi(cov.val));
+                OSU_WRITEVAL("AudioHash", cov, glsec.AudioHash, cov.val);
+                OSU_WRITEVAL("PreviewTime", cov, glsec.PreviewTime, std::stoi(cov.val));
+                OSU_WRITEVAL("Countdown", cov, glsec.Countdown, std::stoi(cov.val));
+                OSU_WRITEVAL("SampleSet", cov, glsec.SampleSet, cov.val);
+                OSU_WRITEVAL("StackLeniency", cov, glsec.StackLeniency, std::stof(cov.val));
+                OSU_WRITEVAL("Mode", cov, glsec.Mode, std::stoi(cov.val.c_str()));
+                OSU_WRITEVAL("LetterboxInBreaks", cov, glsec.LetterboxInBreaks, static_cast<bool>(std::stoi(cov.val)));
+                OSU_WRITEVAL("StoryFileInFront", cov, glsec.StoryFileInFront, static_cast<bool>(std::stoi(cov.val)));
+                OSU_WRITEVAL("UseSkinSprites", cov, glsec.UseSkinSprites, static_cast<bool>(std::stoi(cov.val)));
+                OSU_WRITEVAL("AlwaysShowPlayfield", cov, glsec.AlwaysShowPlayfield, static_cast<bool>(std::stoi(cov.val)));
+                OSU_WRITEVAL("OverlayPosition", cov, glsec.OverlayPosition, cov.val);
+                OSU_WRITEVAL("SkinPreference", cov, glsec.SkinPreference, cov.val);
+                OSU_WRITEVAL("EpilepcyWarning", cov, glsec.EpilepcyWarning, static_cast<bool>(std::stoi(cov.val)));
+                OSU_WRITEVAL("CountdownOffset", cov, glsec.CountdownOffset, stof(cov.val));
+                OSU_WRITEVAL("SpecialStyle", cov, glsec.SpecialStyle, static_cast<bool>(std::stoi(cov.val)));
+                OSU_WRITEVAL("WidescreenStoryboard", cov, glsec.WidescreenStoryboard, static_cast<bool>(std::stoi(cov.val)));
             }
         }
 
+        ParserClearSection();
+
+        return CFILE_OK;
+    }
+
+    cFileErr OsuFile::ReadMetadataSection(OsuMetadataSection &metasec)
+    {
         return CFILE_OK;
     }
 }

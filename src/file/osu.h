@@ -6,12 +6,6 @@
 // МОЖЕТ НЕ ПРАВИЛЬНО ЧИТАТЬ ФАЙЛЫ ИЗ ПРОТИВОПОЛОЖНОЙ ОС
 //
 // при новой строке в конце может выдавать ошибку какуюта
-//
-// в этом файле писать макросы в верхнем индексе
-// и после переменные в скобках делать посередине ( ну типо )
-// комы писать как угодно, главное чтоб понятно было
-// комментировать только проблемные функции
-// на стиль кода поуй
 
 #pragma once
 
@@ -24,12 +18,16 @@ const char NEW_LINE[2] = {'\r', '\n'};
 #define OSU_CODE 0x80000000u
 #define OSU_CODE_CHECK( _val ) ( ( _val & OSU_CODE ) != 0 )
 
-typedef enum
+#define OSU_WRITEVAL( _param_name, _struct, _out, _val )\
+        if (_param_name == _struct.name)                \
+            _out = _val;
+
+typedef enum : uint32_t
 {
-    OSU_BEZIER     = 0xfffffff1u,
-    OSU_CENTIPETAL = 0xfffffff2u,
-    OSU_LINEAR     = 0xfffffff3u,
-    OSU_PCIRCLE    = 0xfffffff4u
+    OSU_BEZIER     = 0xfffffff1,
+    OSU_CENTIPETAL = 0xfffffff2,
+    OSU_LINEAR     = 0xfffffff3,
+    OSU_PCIRCLE    = 0xfffffff4
 } OsuCodeEnum;
 
 typedef struct 
@@ -48,8 +46,36 @@ const OsuSliderParse OsuSliderCode[] = {
 typedef struct 
 {
     std::string name;
-    std::string val;
+    std::string val; // потом
 } ConfOsuValue;
+
+typedef struct 
+{
+    std::string AudioFileName;
+    int AudioLeadIn;
+    std::string AudioHash;
+    int PreviewTime;
+    int Countdown;
+    std::string SampleSet;
+    float StackLeniency;
+    int Mode;
+    bool LetterboxInBreaks;
+    bool StoryFileInFront;
+    bool UseSkinSprites;
+    bool AlwaysShowPlayfield;
+    std::string OverlayPosition;
+    std::string SkinPreference;
+    bool EpilepcyWarning;
+    int CountdownOffset;
+    bool SpecialStyle;
+    bool WidescreenStoryboard;
+} OsuGlobalSection;
+
+typedef struct
+{
+    //
+} OsuMetadataSection;
+
 
 namespace osu
 {
@@ -58,8 +84,8 @@ namespace osu
     class OsuFile : public base::File
     {
     public:
-        // cFileErr ReadGeneralSection();
-        cFileErr ReadStruct();
+        cFileErr ReadGeneralSection(OsuGlobalSection &glsec);
+        cFileErr ReadMetadataSection(OsuMetadataSection &metasec);
         // GetError возвращает 
         // - CFILE_OK если курсор не на секции
         // уточннение если курсор не на начале секкции '['
@@ -86,7 +112,8 @@ namespace osu
         // - CFILE_END
         // - CFILE_NEW_SECTION
         // - CFILE_OK
-        cFileErr SkipVal(const char* val, uint8_t bCount);
+        cFileErr SkipVal(const char *val, uint8_t bCount);
+        
     private:
         std::string Section;
     };

@@ -46,6 +46,11 @@ namespace base
 
             return val;
         }
+        template <typename T>
+        void SetVal()
+        {
+            
+        }
     protected:
         size_t fileSize;
         uint64_t fileOffset = 0;
