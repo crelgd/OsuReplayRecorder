@@ -16,12 +16,14 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     endif()
 endif()
 
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
 
 add_subdirectory(src)
+add_subdirectory(test)
+
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(orr PRIVATE _DEBUG)
-    add_subdirectory(test)
 endif()

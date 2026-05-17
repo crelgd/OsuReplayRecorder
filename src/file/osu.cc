@@ -13,7 +13,7 @@ namespace osu
     {
         err = SkipVal(NEW_LINE, 2);
 
-        if (Section.size() != 0)
+        if (!Section.empty())
             return Section;
 
         std::string statSection = "";
@@ -42,8 +42,18 @@ namespace osu
         }
         else if (fileData[fileOffset] != '[')
         {
-            err = CFILE_OK;
-            return "";
+            while (fileData[fileOffset] != '[')
+            {
+                if (fileOffset >= fileData.size())
+                {
+                    err = CFILE_ERR;
+                    return "";
+                }
+
+                fileOffset++;
+            }
+
+            return ParserGetSection();
         }
 
         return Section = statSection;
@@ -116,6 +126,7 @@ namespace osu
             {
                 const char* valS = ":";
                 err = SkipVal(valS, 1);
+                err = SkipVal(" ", 1);
 
                 valIndex++;
 
@@ -130,6 +141,9 @@ namespace osu
 
         val.name = valArr[0];
         val.val = valArr[1];
+
+        LOG("\tParserGetValue() name=" << val.name <<
+            "\n\tval=" << val.val);
 
         return val;
     }
@@ -208,8 +222,6 @@ namespace osu
             valList.push_back(std::stoi(valBfr));
         }
 
-        LOG("end in sym: " << fileOffset);
-
         return valList;
     }
 
@@ -220,16 +232,24 @@ namespace osu
         if (skip == CFILE_ERR)
             return CFILE_ERR;
 
-        if (!Section.empty())
-            ParserClearSection();
-
-        std::string pcSection = ParserGetSection();
-
-        if (pcSection.empty())
-            return GetError();
-
         err = CFILE_OK;
         glsec = {};
+
+        std::string pcSection;
+
+        while (err != CFILE_END)
+        {
+            if (!Section.empty())
+                ParserClearSection();
+
+            pcSection = ParserGetSection();
+
+            if (pcSection.empty())
+                return GetError();
+
+            if (pcSection.compare("General") == 0)
+                break;
+        }
 
         if (pcSection.compare("General") == 0)
         {
@@ -261,15 +281,102 @@ namespace osu
                 OSU_WRITEVAL("SpecialStyle", cov, glsec.SpecialStyle, static_cast<bool>(std::stoi(cov.val)));
                 OSU_WRITEVAL("WidescreenStoryboard", cov, glsec.WidescreenStoryboard, static_cast<bool>(std::stoi(cov.val)));
             }
-        }
-
-        ParserClearSection();
+        } else return CFILE_ERR;
 
         return CFILE_OK;
     }
 
     cFileErr OsuFile::ReadMetadataSection(OsuMetadataSection &metasec)
     {
+        cFileErr skip = SkipVal(NEW_LINE, 2);
+
+        if (skip == CFILE_ERR)
+        {
+            LOG("ERR: ReadMetadataSection() skip == CFILE_ERR");
+            return CFILE_ERR;
+        }
+
+        err = CFILE_OK;
+        metasec = {};
+        
+        std::string TagsBfr;
+        std::string pcSection;
+
+        while (err != CFILE_END)
+        {
+            if (!Section.empty())
+                ParserClearSection();
+
+            pcSection = ParserGetSection();
+
+            if (pcSection.empty())
+                return GetError();
+
+            if (pcSection.compare("Metadata") == 0)
+                break;
+        }
+
+        if (pcSection.compare("Metadata") == 0)
+        {
+            while (err != CFILE_NEW_SECTION)
+            {
+                if (err == CFILE_END || err == CFILE_ERR)
+                {
+                    LOG("ERR: ReadMetadataSection() err == CFILE_END || err == CFILE_ERR");
+                    return err;
+                }
+
+                ConfOsuValue cov = ParserGetValue();
+                if (err == CFILE_ERR) // 
+                {
+                    LOG("ERR: ReadMetadataSection() err == CFILE_ERR");
+                    return err;
+                }
+             
+                OSU_WRITEVAL("Title", cov, metasec.Title, cov.val);
+                OSU_UWRITEVAL("TitleUnicode", cov, metasec.TitleUnicode, cov.val);
+                OSU_WRITEVAL("Artist", cov, metasec.Artist, cov.val);
+                OSU_UWRITEVAL("ArtistUnicode", cov, metasec.ArtistUnicode, cov.val);
+                OSU_WRITEVAL("Creator", cov, metasec.Creator, cov.val);
+                OSU_WRITEVAL("Version", cov, metasec.Version, cov.val);
+                OSU_WRITEVAL("Source", cov, metasec.Source, cov.val);
+                OSU_WRITEVAL("Tags", cov, TagsBfr, cov.val);
+                OSU_WRITEVAL("BeatmapID", cov, metasec.BeatmapID, std::stoi(cov.val));
+                OSU_WRITEVAL("BeatmapSetID", cov, metasec.BeatmapSetID, std::stoi(cov.val));
+            }
+        } else return CFILE_ERR;
+
+        if (ParserMetadataTagsConvert(TagsBfr, metasec) != CFILE_OK)
+        {
+            LOG("ERR: ParserMetadataTagsConvert() != CFILE_OK");
+            return CFILE_ERR;
+        }
+
+        return CFILE_OK;
+    }
+
+    cFileErr OsuFile::ParserMetadataTagsConvert(std::string TagsBfr, OsuMetadataSection &oms)
+    {   
+        if (TagsBfr.empty())
+            return CFILE_ERR;
+
+        std::string bfr;
+
+        for (int i = 0; i < TagsBfr.length(); i++)
+        {
+            if (TagsBfr[i] == ' ')
+            {
+                oms.Tags.push_back(bfr);
+                bfr.clear();
+            } else
+            {
+                bfr += TagsBfr[i];
+            }
+        }
+
+        if (!bfr.empty())
+            oms.Tags.push_back(bfr);
+
         return CFILE_OK;
     }
 }

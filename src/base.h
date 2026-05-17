@@ -6,6 +6,7 @@
 #pragma once
 
 #define IFEL(val, msg) { if (val) throw std::runtime_error(std::string(msg)); }
+#define USTRMAX 2048
 
 #ifdef _DEBUG
 #   define LOG(val) std::cout << val << std::endl;
@@ -46,16 +47,14 @@ namespace base
 
             return val;
         }
-        template <typename T>
-        void SetVal()
-        {
-            
-        }
+
     protected:
         size_t fileSize;
         uint64_t fileOffset = 0;
         std::vector<uint8_t> fileData;
         cFileErr err = CFILE_OK;         
     };
+
+    std::wstring ConvertWSTR(const char* in, size_t inLength);
 }
 

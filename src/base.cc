@@ -27,5 +27,24 @@ namespace base
     {
         return err;
     }
+
+    std::wstring ConvertWSTR(const char* in, size_t inLength)
+    {
+        size_t i = inLength+1;
+        size_t outSize;
+        std::wstring Unicode;
+        Unicode.resize(i);
+
+    	errno_t err = mbstowcs_s(
+            &outSize,
+    		&Unicode[0],
+    		i,
+    		in,
+    		i-1);
+    	if (err != 0)
+    		return {};
+
+    	return Unicode;
+    }
 }
 

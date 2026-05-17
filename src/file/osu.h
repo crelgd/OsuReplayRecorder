@@ -22,6 +22,11 @@ const char NEW_LINE[2] = {'\r', '\n'};
         if (_param_name == _struct.name)                \
             _out = _val;
 
+#define OSU_UWRITEVAL( _param_name, _struct, _out, _val )   \
+        if (_param_name == _struct.name) {                  \
+            std::wstring u = base::ConvertWSTR(_val.c_str(), _val.length());\
+            _out = u;}                                      \
+
 typedef enum : uint32_t
 {
     OSU_BEZIER     = 0xfffffff1,
@@ -73,9 +78,17 @@ typedef struct
 
 typedef struct
 {
-    //
+    std::string Title;
+    std::wstring TitleUnicode;
+    std::string Artist;
+    std::wstring ArtistUnicode;
+    std::string Creator;
+    std::string Version;
+    std::string Source;
+    std::vector<std::string> Tags; // разделенные пробелом
+    int BeatmapID;
+    int BeatmapSetID;
 } OsuMetadataSection;
-
 
 namespace osu
 {
@@ -113,8 +126,11 @@ namespace osu
         // - CFILE_NEW_SECTION
         // - CFILE_OK
         cFileErr SkipVal(const char *val, uint8_t bCount);
+        cFileErr ParserMetadataTagsConvert(std::string TagsBfr, OsuMetadataSection &oms);
         
     private:
         std::string Section;
     };
 }
+
+// туду сделать массив с указателем на секции
