@@ -25,24 +25,23 @@ int main(int argc, char* argv[])
     osu::OsuFile file;
     file.load(argv[1]);
 
+    file.GetAllSections();
+
     file.ParserClearSection();
 
     OsuGlobalSection ogs;
     OsuMetadataSection oms;
+    OsuDifficultSection ods;
+    OsuColoursSection ocs;
 
-    cFileErr err = file.ReadGeneralSection(ogs);
+    cFileErr err1 = file.ReadGeneralSection(ogs);
+    cFileErr err2 = file.ReadMetadataSection(oms);
+    cFileErr err3 = file.ReadDifficultSection(ods);
+    cFileErr err4 = file.ReadColoursSection(ocs);
 
-    if (err != CFILE_OK)
+    if (err1 != CFILE_OK || err2 != CFILE_OK || err3 != CFILE_OK || err4 != CFILE_OK)
     {
-        std::cout << "err code: " << err << std::endl;
-        return 1;
-    }
-
-    err = file.ReadMetadataSection(oms);
-
-    if (err != CFILE_OK)
-    {
-        std::cout << "err code meta: " << err << std::endl;
+        std::cout << err1 << " " << err2 << " " << err3 << " " << err4 << std::endl;
         return 1;
     }
 
@@ -64,7 +63,7 @@ int main(int argc, char* argv[])
         "EpilepcyWarning: " << ogs.EpilepcyWarning << "\n" <<
         "Countdownoffset: " << ogs.CountdownOffset << "\n" << 
         "SpecialStyle: " << ogs.SpecialStyle << "\n" <<
-        "WidescreenStoryboard: " << ogs.WidescreenStoryboard << "\n" <<
+        "WidescreenStoryboard: " << ogs.WidescreenStoryboard <<
     std::endl;
 
     std::cout << "\tSection Metadata\n" << 
@@ -87,6 +86,34 @@ int main(int argc, char* argv[])
         "BeatmapSetID: " << oms.BeatmapSetID << "\n" <<
     std::endl;
 
+    std::cout << "\tSection Difficult\n" <<
+        "HPDrainRate: " << float(ods.HPDrainRate) << "\n" <<
+        "CircleSize: " << float(ods.CircleSize) << "\n" <<
+        "OverallDiffculty: " << float(ods.OverallDifficulty) << "\n" <<
+        "ApproachRate: " << float(ods.ApproachRate) << "\n" <<
+        "SliderMultiplier: " << float(ods.SliderMultiplier) << "\n" <<
+        "SliderTickRate: " << float(ods.SliderTickRate) <<
+    std::endl;
+
+    std::cout << "\tSection Colour\nCombo: " << std::endl;
+    for (int i = 0; i < ocs.Combo.size(); i++)
+    {
+        std::cout << int(ocs.Combo[i]) << ", ";
+    }
+    std::cout << "\nSliderTrackOverride: ";
+    for (int i = 0; i < ocs.SliderTrackOverride.size(); i++)
+    {
+        std::cout << int(ocs.SliderTrackOverride[i]) << ", ";
+    }
+    std::cout << "\nSliderBorder: ";
+    for (int i = 0; i < ocs.SliderBorder.size(); i++)
+    {
+        std::cout << int(ocs.SliderBorder[i]) << ", ";
+    }
+    
+    if (1 > ods.SliderMultiplier) std::cout << "3214214fw\n";
+
     return 0;
 }
 
+// сломаны float

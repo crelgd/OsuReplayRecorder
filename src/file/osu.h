@@ -18,11 +18,23 @@ const char NEW_LINE[2] = {'\r', '\n'};
 #define OSU_CODE 0x80000000u
 #define OSU_CODE_CHECK( _val ) ( ( _val & OSU_CODE ) != 0 )
 
-#define OSU_WRITEVAL( _param_name, _struct, _out, _val )\
+#define OSU_WRITESTR( _param_name, _struct, _out, _val )\
         if (_param_name == _struct.name)                \
             _out = _val;
 
-#define OSU_UWRITEVAL( _param_name, _struct, _out, _val )   \
+#define OSU_WRITEINT( _param_name, _struct, _out, _val )\
+        if (_param_name == _struct.name)   \
+            _out = std::stoi(_val);
+
+#define OSU_WRITEFLOAT( _param_name, _struct, _out, _val )\
+        if (_param_name == _struct.name)   \
+            _out = std::stof(_val);
+
+#define OSU_WRITEBOOL( _param_name, _struct, _out, _val )\
+        if (_param_name == _struct.name)   \
+            _out = static_cast<bool>(std::stoi(_val));
+
+#define OSU_UWRITESTR( _param_name, _struct, _out, _val )   \
         if (_param_name == _struct.name) {                  \
             std::wstring u = base::ConvertWSTR(_val.c_str(), _val.length());\
             _out = u;}                                      \
@@ -50,8 +62,14 @@ const OsuSliderParse OsuSliderCode[] = {
 
 typedef struct 
 {
+    std::string section;
+    int offset;
+} SectionTable;
+
+typedef struct 
+{
     std::string name;
-    std::string val; // потом
+    std::string val;
 } ConfOsuValue;
 
 typedef struct 
@@ -90,6 +108,23 @@ typedef struct
     int BeatmapSetID;
 } OsuMetadataSection;
 
+typedef struct
+{
+    float HPDrainRate;
+    float CircleSize;
+    float OverallDifficulty;
+    float ApproachRate;
+    float SliderMultiplier;
+    float SliderTickRate;
+} OsuDifficultSection;
+
+typedef struct
+{
+    std::vector<uint8_t> Combo; // разделять combo# вручную
+    std::vector<uint8_t> SliderTrackOverride;
+    std::vector<uint8_t> SliderBorder;
+} OsuColoursSection;
+
 namespace osu
 {
     // где возращаемое значение имеет тип FileErr
@@ -97,8 +132,10 @@ namespace osu
     class OsuFile : public base::File
     {
     public:
-        cFileErr ReadGeneralSection(OsuGlobalSection &glsec);
-        cFileErr ReadMetadataSection(OsuMetadataSection &metasec);
+        cFileErr ReadGeneralSection(OsuGlobalSection& glsec);
+        cFileErr ReadMetadataSection(OsuMetadataSection& metasec);
+        cFileErr ReadDifficultSection(OsuDifficultSection& diffsec);
+        cFileErr ReadColoursSection(OsuColoursSection& colsec);
         // GetError возвращает 
         // - CFILE_OK если курсор не на секции
         // уточннение если курсор не на начале секкции '['
@@ -116,6 +153,8 @@ namespace osu
         std::vector<int64_t> ParserGetComaSeparatedValue();
         // вызывать в цикле с проверкой на конец файла
         cFileErr SkipComment();
+        // запускать после загрузки файла!
+        void GetAllSections();
 
     private:
         // единственная функция где используется FILE_END
@@ -127,10 +166,12 @@ namespace osu
         // - CFILE_OK
         cFileErr SkipVal(const char *val, uint8_t bCount);
         cFileErr ParserMetadataTagsConvert(std::string TagsBfr, OsuMetadataSection &oms);
-        
+        bool SettingUpSection(std::string section);
+        // лень менять логику в ParserGetComaSeparatedValue
+        std::vector<uint8_t> ParseComaSep(std::string in);
+
     private:
         std::string Section;
+        std::vector<SectionTable> sectionTable;
     };
 }
-
-// туду сделать массив с указателем на секции

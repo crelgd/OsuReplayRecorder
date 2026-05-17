@@ -21,7 +21,8 @@ typedef enum
     CFILE_END,
 
     CFILE_NEW_SECTION,
-    CFILE_SKIP_NOTH
+    CFILE_SKIP_NOTH,
+    CFILE_NOT_SECTION
 } cFileErr;
 
 namespace base
